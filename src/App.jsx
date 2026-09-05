@@ -1,3 +1,4 @@
+import React from "react";
 export default function App() {
   const [page, setPage] = React.useState("home");
   return (
