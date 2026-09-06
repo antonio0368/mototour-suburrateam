@@ -13,6 +13,9 @@ const creaGiornata = (numero) => ({
   note: "",
 });
 
+const letteraPercorso = (indice) =>
+  String.fromCharCode(65 + indice);
+
 export default function Pianifica() {
   const [nome, setNome] = useState("");
   const [partenza, setPartenza] = useState("");
@@ -63,6 +66,38 @@ export default function Pianifica() {
     );
   };
 
+  const spostaPassaggio = (
+    indicePartenza,
+    indiceDestinazione
+  ) => {
+    if (
+      indiceDestinazione < 0 ||
+      indiceDestinazione >= passaggi.length
+    ) {
+      return;
+    }
+
+    setPassaggi((passaggiAttuali) => {
+      const passaggiRiordinati = [
+        ...passaggiAttuali,
+      ];
+
+      const [passaggioSpostato] =
+        passaggiRiordinati.splice(
+          indicePartenza,
+          1
+        );
+
+      passaggiRiordinati.splice(
+        indiceDestinazione,
+        0,
+        passaggioSpostato
+      );
+
+      return passaggiRiordinati;
+    });
+  };
+
   const modificaNumeroGiorni = (valore) => {
     const nuovoNumero = Number(valore);
 
@@ -85,11 +120,6 @@ export default function Pianifica() {
     }
   };
 
-  /*
-   * Correzione importante:
-   * [campo]: valore aggiorna la proprietà corretta
-   * della giornata, per esempio km, ore o note.
-   */
   const aggiornaGiornata = (
     indice,
     campo,
@@ -101,17 +131,13 @@ export default function Pianifica() {
           indiceCorrente === indice
             ? {
                 ...giornata,
-                [campo]: valore
+                valore,
               }
             : giornata
       )
     );
   };
 
-  /*
-   * Totali calcolati automaticamente come somma
-   * di tutte le giornate pianificate.
-   */
   const totaliTour = giornate.reduce(
     (totali, giornata) => ({
       km:
@@ -165,16 +191,25 @@ export default function Pianifica() {
     (!giroCircolare && !arrivo.trim());
 
   const percorsoRiepilogato = [
-    partenza.trim(),
+    {
+      tipo: "Partenza",
+      localita: partenza.trim(),
+    },
 
     ...passaggi
-      .map((passaggio) => passaggio.trim())
-      .filter(Boolean),
+      .map((passaggio, indice) => ({
+        tipo: `Passaggio ${indice + 1}`,
+        localita: passaggio.trim(),
+      }))
+      .filter((elemento) => elemento.localita),
 
-    giroCircolare
-      ? partenza.trim()
-      : arrivo.trim(),
-  ].filter(Boolean);
+    {
+      tipo: "Arrivo",
+      localita: giroCircolare
+        ? partenza.trim()
+        : arrivo.trim(),
+    },
+  ].filter((elemento) => elemento.localita);
 
   const salvaTour = (evento) => {
     evento.preventDefault();
@@ -239,7 +274,7 @@ export default function Pianifica() {
         .pianifica-layout {
           display: grid;
           grid-template-columns:
-            minmax(285px, 1fr)
+            minmax(300px, 1fr)
             minmax(0, 2fr);
           gap: 20px;
           align-items: start;
@@ -270,14 +305,13 @@ export default function Pianifica() {
           color: #cbd5e1;
           font-size: 12px;
           font-weight: 700;
-          letter-spacing: 0.02em;
         }
 
         .pianifica-field {
           display: block;
           width: 100%;
           box-sizing: border-box;
-          margin: 0 0 14px;
+          margin: 0;
           padding: 13px 14px;
           border: 1px solid #334155;
           border-radius: 11px;
@@ -306,7 +340,6 @@ export default function Pianifica() {
           box-shadow:
             0 0 0 3px
             rgba(249, 115, 22, 0.16);
-          background: #192438;
         }
 
         .pianifica-field:disabled {
@@ -314,73 +347,100 @@ export default function Pianifica() {
           opacity: 0.62;
         }
 
+        .pianifica-standard-field {
+          margin-bottom: 14px;
+        }
+
         textarea.pianifica-field {
-          min-height: 90px;
+          min-height: 82px;
           resize: vertical;
         }
 
-        .pianifica-passaggi {
-          margin: 2px 0 15px;
+        .pianifica-route-fields {
+          margin-bottom: 18px;
+          padding: 14px;
+          border: 1px solid #29374b;
+          border-radius: 14px;
+          background: #111a2b;
         }
 
-        .pianifica-passaggio-row {
-          display: flex;
+        .pianifica-route-row {
+          display: grid;
+          grid-template-columns:
+            32px minmax(0, 1fr) auto;
           align-items: center;
           gap: 8px;
-          margin-bottom: 9px;
+          margin-bottom: 10px;
         }
 
-        .pianifica-passaggio-number {
+        .pianifica-route-row:last-child {
+          margin-bottom: 0;
+        }
+
+        .pianifica-route-letter {
           display: flex;
-          width: 27px;
-          height: 27px;
-          flex: 0 0 27px;
+          width: 30px;
+          height: 30px;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-            rgba(249, 115, 22, 0.4);
+          box-sizing: border-box;
+          border: 2px solid #f97316;
           border-radius: 50%;
           background:
             rgba(249, 115, 22, 0.12);
           color: #fb923c;
           font-size: 12px;
-          font-weight: 800;
+          font-weight: 900;
         }
 
-        .pianifica-passaggio-field {
-          flex: 1;
-          min-width: 0;
-          margin: 0;
+        .pianifica-route-letter.arrivo {
+          border-color: #38bdf8;
+          background:
+            rgba(56, 189, 248, 0.1);
+          color: #7dd3fc;
         }
 
-        .pianifica-remove-passaggio {
+        .pianifica-route-controls {
           display: flex;
-          width: 38px;
-          height: 38px;
-          flex: 0 0 38px;
+          gap: 5px;
+        }
+
+        .pianifica-route-control {
+          display: flex;
+          width: 30px;
+          height: 30px;
           align-items: center;
           justify-content: center;
+          padding: 0;
           border: 1px solid #334155;
-          border-radius: 10px;
-          background: #111b2c;
+          border-radius: 8px;
+          background: #172033;
           color: #94a3b8;
           cursor: pointer;
-          font-size: 17px;
+          font-size: 12px;
         }
 
-        .pianifica-remove-passaggio:hover {
-          border-color:
-            rgba(239, 68, 68, 0.65);
-          background:
-            rgba(239, 68, 68, 0.1);
+        .pianifica-route-control:hover:not(
+          :disabled
+        ) {
+          border-color: #f97316;
+          color: #fb923c;
+        }
+
+        .pianifica-route-control.delete:hover {
+          border-color: #ef4444;
           color: #fca5a5;
+        }
+
+        .pianifica-route-control:disabled {
+          cursor: not-allowed;
+          opacity: 0.28;
         }
 
         .pianifica-add-passaggio {
           width: 100%;
           box-sizing: border-box;
-          margin-bottom: 15px;
+          margin: 3px 0 12px;
           padding: 11px 14px;
           border: 1px dashed #475569;
           border-radius: 11px;
@@ -406,10 +466,11 @@ export default function Pianifica() {
           opacity: 0.45;
         }
 
-        .pianifica-passaggio-help {
-          margin: -6px 0 14px;
+        .pianifica-route-help {
+          margin: 0 0 14px;
           color: #64748b;
           font-size: 11px;
+          line-height: 1.5;
         }
 
         .pianifica-grid-small {
@@ -440,7 +501,6 @@ export default function Pianifica() {
           position: relative;
           width: 46px;
           height: 25px;
-          flex: 0 0 auto;
         }
 
         .pianifica-switch input {
@@ -482,7 +542,6 @@ export default function Pianifica() {
 
         .pianifica-save {
           width: 100%;
-          box-sizing: border-box;
           padding: 14px 18px;
           border: 0;
           border-radius: 11px;
@@ -496,7 +555,6 @@ export default function Pianifica() {
 
         .pianifica-save:hover:not(:disabled) {
           background: #ea580c;
-          transform: translateY(-1px);
         }
 
         .pianifica-save:disabled {
@@ -564,13 +622,11 @@ export default function Pianifica() {
           position: absolute;
           top: 18px;
           left: 18px;
-          max-width: calc(100% - 36px);
           padding: 13px 15px;
           border: 1px solid #334155;
           border-radius: 12px;
           background:
             rgba(2, 6, 23, 0.9);
-          backdrop-filter: blur(8px);
         }
 
         .pianifica-map-info small {
@@ -613,21 +669,18 @@ export default function Pianifica() {
 
         .pianifica-summary-item strong {
           display: block;
-          overflow: hidden;
           margin-top: 4px;
           color: #f8fafc;
           font-size: 15px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
         }
 
-        .pianifica-route-list {
+        .pianifica-map-route {
           position: absolute;
           top: 18px;
           right: 18px;
           width:
             min(
-              235px,
+              240px,
               calc(100% - 36px)
             );
           max-height: 260px;
@@ -637,39 +690,44 @@ export default function Pianifica() {
           border-radius: 12px;
           background:
             rgba(2, 6, 23, 0.88);
-          backdrop-filter: blur(8px);
         }
 
-        .pianifica-route-title {
+        .pianifica-map-route-title {
           margin: 0 0 9px;
           color: #cbd5e1;
           font-size: 11px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.06em;
         }
 
-        .pianifica-route-item {
-          display: flex;
-          align-items: flex-start;
+        .pianifica-map-route-row {
+          display: grid;
+          grid-template-columns:
+            22px 1fr;
+          align-items: start;
           gap: 8px;
           padding: 6px 0;
           color: #e2e8f0;
           font-size: 12px;
         }
 
-        .pianifica-route-dot {
+        .pianifica-map-route-letter {
           display: flex;
-          width: 19px;
-          height: 19px;
-          flex: 0 0 19px;
+          width: 20px;
+          height: 20px;
           align-items: center;
           justify-content: center;
           border-radius: 50%;
           background: #1e293b;
           color: #fb923c;
           font-size: 10px;
-          font-weight: 800;
+          font-weight: 900;
+        }
+
+        .pianifica-map-route-type {
+          display: block;
+          color: #64748b;
+          font-size: 10px;
         }
 
         .pianifica-days-heading {
@@ -697,19 +755,17 @@ export default function Pianifica() {
           width: 100%;
           align-items: center;
           justify-content: space-between;
-          box-sizing: border-box;
           padding: 15px 16px;
+          box-sizing: border-box;
           border: 0;
           background: transparent;
           color: white;
           cursor: pointer;
           font-family: inherit;
-          text-align: left;
         }
 
         .pianifica-day-button strong {
           color: #fb923c;
-          font-size: 15px;
         }
 
         .pianifica-day-button span {
@@ -726,26 +782,23 @@ export default function Pianifica() {
           display: grid;
           grid-template-columns:
             repeat(2, 1fr);
-          gap: 0 12px;
+          gap: 14px 12px;
           padding-top: 15px;
         }
 
         .pianifica-day-note {
           min-height: 82px;
+          margin-top: 14px;
         }
 
         @media (max-width: 850px) {
           .pianifica-layout {
             grid-template-columns: 1fr;
           }
-
-          .pianifica-map {
-            min-height: 450px;
-          }
         }
 
         @media (max-width: 650px) {
-          .pianifica-route-list {
+          .pianifica-map-route {
             display: none;
           }
         }
@@ -758,6 +811,15 @@ export default function Pianifica() {
 
           .pianifica-map-summary {
             grid-template-columns: 1fr;
+          }
+
+          .pianifica-route-row {
+            grid-template-columns:
+              30px minmax(0, 1fr);
+          }
+
+          .pianifica-route-controls {
+            grid-column: 2;
           }
 
           .pianifica-map {
@@ -773,8 +835,8 @@ export default function Pianifica() {
 
         <p className="pianifica-subtitle">
           Definisci partenza, passaggi intermedi e
-          arrivo, quindi suddividi il percorso fino a
-          un massimo di cinque giornate.
+          arrivo. Riordina i passaggi in qualsiasi
+          momento.
         </p>
       </header>
 
@@ -792,7 +854,7 @@ export default function Pianifica() {
           </label>
 
           <input
-            className="pianifica-field"
+            className="pianifica-field pianifica-standard-field"
             value={nome}
             onChange={(evento) =>
               setNome(evento.target.value)
@@ -801,102 +863,165 @@ export default function Pianifica() {
           />
 
           <label className="pianifica-label">
-            Partenza
+            Percorso
           </label>
 
-          <input
-            className="pianifica-field"
-            value={partenza}
-            onChange={(evento) =>
-              setPartenza(evento.target.value)
-            }
-            placeholder="Località di partenza"
-          />
+          <div className="pianifica-route-fields">
+            <div className="pianifica-route-row">
+              <span className="pianifica-route-letter">
+                A
+              </span>
 
-          <div className="pianifica-passaggi">
+              <input
+                className="pianifica-field"
+                value={partenza}
+                onChange={(evento) =>
+                  setPartenza(evento.target.value)
+                }
+                placeholder="Partenza"
+                aria-label="Partenza"
+              />
+
+              <div />
+            </div>
+
             {passaggi.map(
-              (passaggio, indice) => (
-                <div
-                  className="pianifica-passaggio-row"
-                  key={indice}
-                >
-                  <span className="pianifica-passaggio-number">
-                    {indice + 1}
-                  </span>
+              (passaggio, indice) => {
+                const lettera =
+                  letteraPercorso(indice + 1);
 
-                  <input
-                    className="pianifica-field pianifica-passaggio-field"
-                    value={passaggio}
-                    onChange={(evento) =>
-                      aggiornaPassaggio(
-                        indice,
-                        evento.target.value
-                      )
-                    }
-                    placeholder={`Passaggio ${
-                      indice + 1
-                    }`}
-                    aria-label={`Passaggio ${
-                      indice + 1
-                    }`}
-                  />
-
-                  <button
-                    className="pianifica-remove-passaggio"
-                    type="button"
-                    onClick={() =>
-                      eliminaPassaggio(indice)
-                    }
-                    aria-label={`Elimina passaggio ${
-                      indice + 1
-                    }`}
-                    title="Elimina passaggio"
+                return (
+                  <div
+                    className="pianifica-route-row"
+                    key={indice}
                   >
-                    ×
-                  </button>
-                </div>
-              )
+                    <span className="pianifica-route-letter">
+                      {lettera}
+                    </span>
+
+                    <input
+                      className="pianifica-field"
+                      value={passaggio}
+                      onChange={(evento) =>
+                        aggiornaPassaggio(
+                          indice,
+                          evento.target.value
+                        )
+                      }
+                      placeholder={`Passaggio ${
+                        indice + 1
+                      }`}
+                      aria-label={`Passaggio ${
+                        indice + 1
+                      }`}
+                    />
+
+                    <div className="pianifica-route-controls">
+                      <button
+                        className="pianifica-route-control"
+                        type="button"
+                        disabled={indice === 0}
+                        onClick={() =>
+                          spostaPassaggio(
+                            indice,
+                            indice - 1
+                          )
+                        }
+                        title="Sposta in alto"
+                        aria-label={`Sposta passaggio ${
+                          indice + 1
+                        } in alto`}
+                      >
+                        ▲
+                      </button>
+
+                      <button
+                        className="pianifica-route-control"
+                        type="button"
+                        disabled={
+                          indice ===
+                          passaggi.length - 1
+                        }
+                        onClick={() =>
+                          spostaPassaggio(
+                            indice,
+                            indice + 1
+                          )
+                        }
+                        title="Sposta in basso"
+                        aria-label={`Sposta passaggio ${
+                          indice + 1
+                        } in basso`}
+                      >
+                        ▼
+                      </button>
+
+                      <button
+                        className="pianifica-route-control delete"
+                        type="button"
+                        onClick={() =>
+                          eliminaPassaggio(indice)
+                        }
+                        title="Elimina passaggio"
+                        aria-label={`Elimina passaggio ${
+                          indice + 1
+                        }`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
             )}
+
+            <button
+              className="pianifica-add-passaggio"
+              type="button"
+              onClick={aggiungiPassaggio}
+              disabled={
+                passaggi.length >= MAX_PASSAGGI
+              }
+            >
+              + Aggiungi passaggio
+            </button>
+
+            <div className="pianifica-route-row">
+              <span className="pianifica-route-letter arrivo">
+                {letteraPercorso(
+                  passaggi.length + 1
+                )}
+              </span>
+
+              <input
+                className="pianifica-field"
+                value={
+                  giroCircolare
+                    ? partenza
+                    : arrivo
+                }
+                onChange={(evento) =>
+                  setArrivo(evento.target.value)
+                }
+                disabled={giroCircolare}
+                placeholder={
+                  giroCircolare
+                    ? "Uguale alla partenza"
+                    : "Arrivo"
+                }
+                aria-label="Arrivo"
+              />
+
+              <div />
+            </div>
           </div>
 
-          <button
-            className="pianifica-add-passaggio"
-            type="button"
-            onClick={aggiungiPassaggio}
-            disabled={
-              passaggi.length >= MAX_PASSAGGI
-            }
-          >
-            + Aggiungi passaggio
-          </button>
-
-          {passaggi.length > 0 && (
-            <p className="pianifica-passaggio-help">
-              I passaggi verranno percorsi
-              nell’ordine indicato. Puoi inserirne
-              fino a {MAX_PASSAGGI}.
-            </p>
-          )}
-
-          <label className="pianifica-label">
-            Arrivo
-          </label>
-
-          <input
-            className="pianifica-field"
-            value={
-              giroCircolare ? partenza : arrivo
-            }
-            onChange={(evento) =>
-              setArrivo(evento.target.value)
-            }
-            disabled={giroCircolare}
-            placeholder={
-              giroCircolare
-                ? "Uguale alla partenza"
-                : "Località di arrivo"
-            }
-          />
+          <p className="pianifica-route-help">
+            Usa ▲ e ▼ per modificare l’ordine dei
+            passaggi. Dopo un’eliminazione, lettere e
+            numerazione vengono aggiornate
+            automaticamente.
+          </p>
 
           <div className="pianifica-grid-small">
             <div>
@@ -905,7 +1030,7 @@ export default function Pianifica() {
               </label>
 
               <select
-                className="pianifica-field"
+                className="pianifica-field pianifica-standard-field"
                 value={tipoPercorso}
                 onChange={(evento) =>
                   setTipoPercorso(
@@ -934,7 +1059,7 @@ export default function Pianifica() {
               </label>
 
               <select
-                className="pianifica-field"
+                className="pianifica-field pianifica-standard-field"
                 value={numeroGiorni}
                 onChange={(evento) =>
                   modificaNumeroGiorni(
@@ -964,7 +1089,7 @@ export default function Pianifica() {
           </label>
 
           <select
-            className="pianifica-field"
+            className="pianifica-field pianifica-standard-field"
             value={stato}
             onChange={(evento) =>
               setStato(evento.target.value)
@@ -1048,23 +1173,29 @@ export default function Pianifica() {
               <strong>{tipoPercorso}</strong>
             </div>
 
-            {percorsoRiepilogato.length > 0 && (
-              <div className="pianifica-route-list">
-                <p className="pianifica-route-title">
+            {percorsoRiepilogato.length >
+              0 && (
+              <div className="pianifica-map-route">
+                <p className="pianifica-map-route-title">
                   Ordine del percorso
                 </p>
 
                 {percorsoRiepilogato.map(
-                  (localita, indice) => (
+                  (elemento, indice) => (
                     <div
-                      className="pianifica-route-item"
-                      key={`${localita}-${indice}`}
+                      className="pianifica-map-route-row"
+                      key={`${elemento.tipo}-${indice}`}
                     >
-                      <span className="pianifica-route-dot">
-                        {indice + 1}
+                      <span className="pianifica-map-route-letter">
+                        {letteraPercorso(indice)}
                       </span>
 
-                      <span>{localita}</span>
+                      <span>
+                        <span className="pianifica-map-route-type">
+                          {elemento.tipo}
+                        </span>
+                        {elemento.localita}
+                      </span>
                     </div>
                   )
                 )}
@@ -1074,7 +1205,6 @@ export default function Pianifica() {
             <div className="pianifica-map-summary">
               <div className="pianifica-summary-item">
                 <span>Chilometri</span>
-
                 <strong>
                   {totaliTour.km.toLocaleString(
                     "it-IT"
@@ -1085,7 +1215,6 @@ export default function Pianifica() {
 
               <div className="pianifica-summary-item">
                 <span>Ore</span>
-
                 <strong>
                   {formattaOre(totaliTour.ore)}
                 </strong>
@@ -1093,7 +1222,6 @@ export default function Pianifica() {
 
               <div className="pianifica-summary-item">
                 <span>Dislivello</span>
-
                 <strong>
                   {totaliTour.dislivello.toLocaleString(
                     "it-IT"
