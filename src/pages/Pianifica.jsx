@@ -1156,15 +1156,7 @@ export default function Pianifica() {
               <strong>{tipoPercorso}</strong>
             </div>
 
-            <div className="pianifica-map-summary">
-              <div className="pianifica-summary-item">
-                <span>Chilometri</span>
-
-                <strong>
-                  {totaliTour.km.toLocaleString("it-IT")} km
-                </strong>
-              </div>
-
+            
               <div className="pianifica-summary-item">
                 <span>Ore</span>
 
