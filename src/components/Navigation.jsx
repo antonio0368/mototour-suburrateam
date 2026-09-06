@@ -1,4 +1,13 @@
 export default function Navigation({ page, setPage }) {
+  const styleButton = {
+    background: "#1e293b",
+    color: "white",
+    border: "none",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    cursor: "pointer",
+  };
+
   return (
     <div
       style={{
@@ -7,18 +16,30 @@ export default function Navigation({ page, setPage }) {
         left: "50%",
         transform: "translateX(-50%)",
         background: "#0f172a",
-        padding: "10px",
+        padding: "12px",
         borderRadius: "16px",
         display: "flex",
-        gap: "10px",
+        gap: "8px",
       }}
     >
-      <button onClick={() => setPage("home")}>
+      <button style={styleButton} onClick={() => setPage("home")}>
         🏠 Home
       </button>
 
-      <button onClick={() => setPage("pianifica")}>
+      <button style={styleButton} onClick={() => setPage("pianifica")}>
         🗺 Pianifica
+      </button>
+
+      <button style={styleButton} onClick={() => setPage("percorsi")}>
+        📚 Percorsi
+      </button>
+
+      <button style={styleButton} onClick={() => setPage("diario")}>
+        📓 Diario
+      </button>
+
+      <button style={styleButton} onClick={() => setPage("statistiche")}>
+        📊 Statistiche
       </button>
     </div>
   );

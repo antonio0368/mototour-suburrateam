@@ -1,6 +1,9 @@
 import React from "react";
 import Home from "./pages/Home";
 import Pianifica from "./pages/Pianifica";
+import Percorsi from "./pages/Percorsi";
+import Diario from "./pages/Diario";
+import Statistiche from "./pages/Statistiche";
 import Navigation from "./components/Navigation";
 export default function App() {
   const [page, setPage] = React.useState("home");
@@ -42,11 +45,13 @@ export default function App() {
           }}
         />
       </header>
-
-      <div>
-        {page === "home" && <Home />}
-        {page === "pianifica" && <Pianifica />}
-      </div>
+    <div>
+      {page === "home" && <Home />}
+      {page === "pianifica" && <Pianifica />}
+      {page === "percorsi" && <Percorsi />}
+      {page === "diario" && <Diario />}
+      {page === "statistiche" && <Statistiche />}
+    </div>
       <Navigation
         page={page}
        setPage={setPage}
