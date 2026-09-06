@@ -122,18 +122,6 @@ export default function Pianifica() {
         Giro circolare
       </label>
 
-          <button
-            style={{
-              background: "#f97316",
-              color: "white",
-              border: "none",
-              padding: "12px 20px",
-              borderRadius: "8px",
-            }}
-          >
-            Salva Tour
-          </button>
-        </div>
         <div
           style={{
             marginBottom: "16px",
@@ -153,6 +141,20 @@ export default function Pianifica() {
             </div>
           ))}
         </div>
+
+          <button
+            style={{
+              background: "#f97316",
+              color: "white",
+              border: "none",
+              padding: "12px 20px",
+              borderRadius: "8px",
+            }}
+          >
+            Salva Tour
+          </button>
+        </div>
+        
         <div
           style={{
             background: "#172033",
