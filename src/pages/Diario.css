@@ -1,0 +1,220 @@
+.diario-page {
+  min-height: 100vh;
+  padding: 32px;
+  color: #f8fafc;
+  background: #020617;
+}
+
+.diario-header {
+  max-width: 1200px;
+  margin: 0 auto 28px;
+}
+
+.diario-eyebrow {
+  margin: 0 0 6px;
+  color: #f97316;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.diario-header h1 {
+  margin: 0;
+  color: #f97316;
+  font-size: clamp(30px, 5vw, 52px);
+}
+
+.diario-subtitle {
+  margin: 8px 0 0;
+  color: #cbd5e1;
+}
+
+.diario-statistiche {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 14px;
+  max-width: 1200px;
+  margin: 0 auto 20px;
+}
+
+.stat-card,
+.tour-card,
+.diario-toolbar,
+.nessun-tour {
+  border: 1px solid #263248;
+  background: #111a2e;
+  border-radius: 16px;
+}
+
+.stat-card {
+  padding: 18px;
+}
+
+.stat-card span {
+  display: block;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 8px;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.diario-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 12px;
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 14px;
+}
+
+.diario-toolbar input,
+.diario-toolbar select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px;
+  color: #f8fafc;
+  background: #070d1c;
+  font: inherit;
+}
+
+.elenco-tour {
+  display: grid;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tour-card {
+  padding: 20px;
+}
+
+.tour-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.tour-card h2 {
+  margin: 10px 0 5px;
+  color: #ffffff;
+}
+
+.tour-card p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.stato,
+.tipo-percorso {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stato {
+  text-transform: capitalize;
+}
+
+.stato-effettuato {
+  color: #bbf7d0;
+  background: #14532d;
+}
+
+.stato-pianificato {
+  color: #fde68a;
+  background: #713f12;
+}
+
+.tipo-percorso {
+  color: #fed7aa;
+  background: #7c2d12;
+}
+
+.tour-dati {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.tour-dati div {
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  background: #070d1c;
+}
+
+.tour-dati strong,
+.tour-dati span {
+  display: block;
+}
+
+.tour-dati span {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.tour-dettaglio {
+  margin-top: 16px;
+  padding: 15px;
+  border-left: 3px solid #f97316;
+  border-radius: 8px;
+  background: #070d1c;
+}
+
+.tour-dettaglio p + p {
+  margin-top: 10px;
+}
+
+.dettaglio-button {
+  margin-top: 16px;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: white;
+  background: #f97316;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nessun-tour {
+  padding: 30px;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .diario-statistiche {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tour-dati {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .diario-page {
+    padding: 20px 14px 90px;
+  }
+
+  .diario-statistiche,
+  .diario-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .tour-card-top {
+    flex-direction: column;
+  }
+}
