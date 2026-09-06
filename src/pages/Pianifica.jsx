@@ -1172,36 +1172,7 @@ export default function Pianifica() {
               </small>
               <strong>{tipoPercorso}</strong>
             </div>
-
-            {percorsoRiepilogato.length >
-              0 && (
-              <div className="pianifica-map-route">
-                <p className="pianifica-map-route-title">
-                  Ordine del percorso
-                </p>
-
-                {percorsoRiepilogato.map(
-                  (elemento, indice) => (
-                    <div
-                      className="pianifica-map-route-row"
-                      key={`${elemento.tipo}-${indice}`}
-                    >
-                      <span className="pianifica-map-route-letter">
-                        {letteraPercorso(indice)}
-                      </span>
-
-                      <span>
-                        <span className="pianifica-map-route-type">
-                          {elemento.tipo}
-                        </span>
-                        {elemento.localita}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
-
+            
             <div className="pianifica-map-summary">
               <div className="pianifica-summary-item">
                 <span>Chilometri</span>
