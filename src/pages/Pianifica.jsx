@@ -575,4 +575,336 @@ export default function Pianifica() {
                 <option value="Panoramico">
                   Panoramico
                 </option>
-                <option value
+                <option value="Curve">
+                  Curve
+                </option>
+                <option value="Extra curve">
+                  Extra curve
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label className="pianifica-label">
+                Numero giorni
+              </label>
+              <select
+                className="pianifica-field"
+                value={numeroGiorni}
+                onChange={(evento) =>
+                  modificaNumeroGiorni(
+                    evento.target.value
+                  )
+                }
+              >
+                {[1, 2, 3, 4, 5].map((numero) => (
+                  <option
+                    key={numero}
+                    value={numero}
+                  >
+                    {numero}{" "}
+                    {numero === 1
+                      ? "giorno"
+                      : "giorni"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <label className="pianifica-label">
+            Stato
+          </label>
+          <select
+            className="pianifica-field"
+            value={stato}
+            onChange={(evento) =>
+              setStato(evento.target.value)
+            }
+          >
+            <option value="Bozza">Bozza</option>
+            <option value="Valido">Valido</option>
+          </select>
+
+          <div className="pianifica-switch-row">
+            <span className="pianifica-switch-label">
+              Giro circolare
+            </span>
+
+            <label className="pianifica-switch">
+              <input
+                type="checkbox"
+                checked={giroCircolare}
+                onChange={(evento) =>
+                  setGiroCircolare(
+                    evento.target.checked
+                  )
+                }
+              />
+              <span className="pianifica-switch-slider" />
+            </label>
+          </div>
+
+          <button
+            className="pianifica-save"
+            type="submit"
+            disabled={campoObbligatorioMancante}
+          >
+            Salva tour
+          </button>
+
+          {messaggio && (
+            <p className="pianifica-message">
+              {messaggio}
+            </p>
+          )}
+        </section>
+
+        <section className="pianifica-card">
+          <div className="pianifica-map">
+            <div className="pianifica-map-grid" />
+
+            <svg viewBox="0 0 800 440">
+              <path
+                d="M65 355 C145 250 235 330 315 220 S470 100 555 190 S670 310 745 85"
+                fill="none"
+                stroke="#fb923c"
+                strokeWidth="9"
+                strokeLinecap="round"
+              />
+              <path
+                d="M65 355 C145 250 235 330 315 220 S470 100 555 190 S670 310 745 85"
+                fill="none"
+                stroke="#ffffff"
+                strokeOpacity="0.65"
+                strokeWidth="2"
+                strokeDasharray="9 12"
+              />
+            </svg>
+
+            <div className="pianifica-map-info">
+              <small>
+                Anteprima del percorso
+              </small>
+              <strong>{tipoPercorso}</strong>
+            </div>
+
+            <div className="pianifica-map-summary">
+              <div className="pianifica-summary-item">
+                <span>Partenza</span>
+                <strong>
+                  {partenza || "Da definire"}
+                </strong>
+              </div>
+
+              <div className="pianifica-summary-item">
+                <span>Arrivo</span>
+                <strong>
+                  {giroCircolare
+                    ? partenza || "Da definire"
+                    : arrivo || "Da definire"}
+                </strong>
+              </div>
+
+              <div className="pianifica-summary-item">
+                <span>Durata</span>
+                <strong>
+                  {numeroGiorni}{" "}
+                  {numeroGiorni === 1
+                    ? "giorno"
+                    : "giorni"}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <h3 className="pianifica-days-heading">
+            Suddivisione del viaggio
+          </h3>
+
+          <p className="pianifica-day-help">
+            Hotel e ristoranti non vengono richiesti
+            durante la pianificazione. Potranno essere
+            registrati nel Diario durante o dopo il
+            tour.
+          </p>
+
+          <div style={{ marginTop: "14px" }}>
+            {giornate.map((giornata, indice) => {
+              const aperta =
+                giornoAperto === giornata.numero;
+
+              return (
+                <article
+                  className="pianifica-day-card"
+                  key={giornata.numero}
+                >
+                  <button
+                    className="pianifica-day-button"
+                    type="button"
+                    onClick={() =>
+                      setGiornoAperto(
+                        aperta
+                          ? null
+                          : giornata.numero
+                      )
+                    }
+                  >
+                    <strong>
+                      Giorno {giornata.numero}
+                    </strong>
+                    <span>
+                      {aperta
+                        ? "Chiudi dettagli"
+                        : "Apri dettagli"}
+                    </span>
+                  </button>
+
+                  {aperta && (
+                    <div className="pianifica-day-content">
+                      <div className="pianifica-day-grid">
+                        <div>
+                          <label className="pianifica-label">
+                            Titolo tappa
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            value={giornata.titolo}
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "titolo",
+                                evento.target.value
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <label className="pianifica-label">
+                            Partenza giornata
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            value={
+                              giornata.partenza
+                            }
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "partenza",
+                                evento.target.value
+                              )
+                            }
+                            placeholder="Partenza tappa"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="pianifica-label">
+                            Arrivo giornata
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            value={giornata.arrivo}
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "arrivo",
+                                evento.target.value
+                              )
+                            }
+                            placeholder="Arrivo tappa"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="pianifica-label">
+                            Chilometri previsti
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            type="number"
+                            min="0"
+                            value={giornata.km}
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "km",
+                                evento.target.value
+                              )
+                            }
+                            placeholder="Km"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="pianifica-label">
+                            Ore previste
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={giornata.ore}
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "ore",
+                                evento.target.value
+                              )
+                            }
+                            placeholder="Ore"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="pianifica-label">
+                            Dislivello positivo
+                          </label>
+                          <input
+                            className="pianifica-field"
+                            type="number"
+                            min="0"
+                            value={
+                              giornata.dislivello
+                            }
+                            onChange={(evento) =>
+                              aggiornaGiornata(
+                                indice,
+                                "dislivello",
+                                evento.target.value
+                              )
+                            }
+                            placeholder="Metri D+"
+                          />
+                        </div>
+                      </div>
+
+                      <label className="pianifica-label">
+                        Note di pianificazione
+                      </label>
+                      <textarea
+                        className="pianifica-field pianifica-day-note"
+                        value={giornata.note}
+                        onChange={(evento) =>
+                          aggiornaGiornata(
+                            indice,
+                            "note",
+                            evento.target.value
+                          )
+                        }
+                        placeholder="Indicazioni, strade da verificare, orari o altre note"
+                      />
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      </form>
+    </main>
+  );
+}
