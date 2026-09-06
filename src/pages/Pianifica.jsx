@@ -1146,45 +1146,45 @@ export default function Pianifica() {
 
         <section className="pianifica-card">
           <div className="pianifica-map">
-  <MappaPercorso />
+            <MappaPercorso />
 
-  <div className="pianifica-map-info">
-    <small>
-      Anteprima del percorso
-    </small>
+            <div className="pianifica-map-info">
+              <small>
+                Anteprima del percorso
+              </small>
 
-    <strong>{tipoPercorso}</strong>
-  </div>
+              <strong>{tipoPercorso}</strong>
+            </div>
 
-  <div className="pianifica-map-summary">
-    <div className="pianifica-summary-item">
-      <span>Chilometri</span>
+            <div className="pianifica-map-summary">
+              <div className="pianifica-summary-item">
+                <span>Chilometri</span>
 
-      <strong>
-        {totaliTour.km.toLocaleString("it-IT")} km
-      </strong>
-    </div>
+                <strong>
+                  {totaliTour.km.toLocaleString("it-IT")} km
+                </strong>
+              </div>
 
-    <div className="pianifica-summary-item">
-      <span>Ore</span>
+              <div className="pianifica-summary-item">
+                <span>Ore</span>
 
-      <strong>
-        {formattaOre(totaliTour.ore)}
-      </strong>
-    </div>
+                <strong>
+                  {formattaOre(totaliTour.ore)}
+                </strong>
+              </div>
 
-    <div className="pianifica-summary-item">
-      <span>Dislivello</span>
+              <div className="pianifica-summary-item">
+                <span>Dislivello</span>
 
-      <strong>
-        {totaliTour.dislivello.toLocaleString(
-          "it-IT"
-        )}{" "}
-        m D+
-      </strong>
-    </div>
-  </div>
-</div>
+                <strong>
+                  {totaliTour.dislivello.toLocaleString(
+                    "it-IT"
+                  )}{" "}
+                  m D+
+                </strong>
+              </div>
+            </div>
+          </div>
             
             <div className="pianifica-map-summary">
               <div className="pianifica-summary-item">
