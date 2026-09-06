@@ -1,4 +1,6 @@
 import React from "react";
+import Home from "./pages/Home";
+import Pianifica from "./pages/Pianifica";
 export default function App() {
   const [page, setPage] = React.useState("home");
   return (
