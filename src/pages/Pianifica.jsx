@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const MAX_PASSAGGI = 10;
+
 const creaGiornata = (numero) => ({
   numero,
   titolo: `Giorno ${numero}`,
@@ -13,17 +15,45 @@ const creaGiornata = (numero) => ({
 
 export default function Pianifica() {
   const [nome, setNome] = useState("");
-  const [regioni, setRegioni] = useState("");
   const [partenza, setPartenza] = useState("");
   const [arrivo, setArrivo] = useState("");
-  const [waypoint, setWaypoint] = useState("");
+  const [passaggi, setPassaggi] = useState([]);
   const [tipoPercorso, setTipoPercorso] = useState("Curve");
   const [stato, setStato] = useState("Bozza");
   const [giroCircolare, setGiroCircolare] = useState(false);
   const [numeroGiorni, setNumeroGiorni] = useState(1);
-  const [giornate, setGiornate] = useState([creaGiornata(1)]);
+  const [giornate, setGiornate] = useState([
+    creaGiornata(1),
+  ]);
   const [giornoAperto, setGiornoAperto] = useState(1);
   const [messaggio, setMessaggio] = useState("");
+
+  const aggiungiPassaggio = () => {
+    if (passaggi.length >= MAX_PASSAGGI) {
+      return;
+    }
+
+    setPassaggi((passaggiAttuali) => [
+      ...passaggiAttuali,
+      "",
+    ]);
+  };
+
+  const aggiornaPassaggio = (indice, valore) => {
+    setPassaggi((passaggiAttuali) =>
+      passaggiAttuali.map((passaggio, indiceCorrente) =>
+        indiceCorrente === indice ? valore : passaggio
+      )
+    );
+  };
+
+  const eliminaPassaggio = (indice) => {
+    setPassaggi((passaggiAttuali) =>
+      passaggiAttuali.filter(
+        (_, indiceCorrente) => indiceCorrente !== indice
+      )
+    );
+  };
 
   const modificaNumeroGiorni = (valore) => {
     const nuovoNumero = Number(valore);
@@ -39,20 +69,24 @@ export default function Pianifica() {
       })
     );
 
-    if (giornoAperto > nuovoNumero) {
+    if (
+      giornoAperto !== null &&
+      giornoAperto > nuovoNumero
+    ) {
       setGiornoAperto(nuovoNumero);
     }
   };
 
   const aggiornaGiornata = (indice, campo, valore) => {
     setGiornate((giornateAttuali) =>
-      giornateAttuali.map((giornata, indiceCorrente) =>
-        indiceCorrente === indice
-          ? {
-              ...giornata,
-              valore,
-            }
-          : giornata
+      giornateAttuali.map(
+        (giornata, indiceCorrente) =>
+          indiceCorrente === indice
+            ? {
+                ...giornata,
+                valore,
+              }
+            : giornata
       )
     );
   };
@@ -61,17 +95,14 @@ export default function Pianifica() {
     evento.preventDefault();
 
     const tour = {
-      nome,
-      regioni: regioni
-        .split(",")
-        .map((regione) => regione.trim())
+      nome: nome.trim(),
+      partenza: partenza.trim(),
+      passaggi: passaggi
+        .map((passaggio) => passaggio.trim())
         .filter(Boolean),
-      partenza,
-      arrivo: giroCircolare ? partenza : arrivo,
-      waypoint: waypoint
-        .split("\n")
-        .map((punto) => punto.trim())
-        .filter(Boolean),
+      arrivo: giroCircolare
+        ? partenza.trim()
+        : arrivo.trim(),
       tipoPercorso,
       stato,
       giroCircolare,
@@ -90,6 +121,16 @@ export default function Pianifica() {
     !nome.trim() ||
     !partenza.trim() ||
     (!giroCircolare && !arrivo.trim());
+
+  const percorsoRiepilogato = [
+    partenza.trim(),
+    ...passaggi
+      .map((passaggio) => passaggio.trim())
+      .filter(Boolean),
+    giroCircolare
+      ? partenza.trim()
+      : arrivo.trim(),
+  ].filter(Boolean);
 
   return (
     <main className="pianifica-page">
@@ -113,7 +154,9 @@ export default function Pianifica() {
 
         .pianifica-layout {
           display: grid;
-          grid-template-columns: minmax(290px, 1fr) minmax(0, 2fr);
+          grid-template-columns:
+            minmax(285px, 1fr)
+            minmax(0, 2fr);
           gap: 20px;
           align-items: start;
           margin-top: 24px;
@@ -125,7 +168,8 @@ export default function Pianifica() {
           border: 1px solid #1e293b;
           border-radius: 18px;
           background: #0f172a;
-          box-shadow: 0 14px 35px rgba(0, 0, 0, 0.18);
+          box-shadow:
+            0 14px 35px rgba(0, 0, 0, 0.18);
         }
 
         .pianifica-card-title {
@@ -174,13 +218,110 @@ export default function Pianifica() {
 
         .pianifica-field:focus {
           border-color: #f97316;
-          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.16);
+          box-shadow:
+            0 0 0 3px rgba(249, 115, 22, 0.16);
           background: #192438;
         }
 
+        .pianifica-field:disabled {
+          cursor: not-allowed;
+          opacity: 0.62;
+        }
+
         textarea.pianifica-field {
-          min-height: 96px;
+          min-height: 90px;
           resize: vertical;
+        }
+
+        .pianifica-passaggi {
+          margin: 2px 0 15px;
+        }
+
+        .pianifica-passaggio-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 9px;
+        }
+
+        .pianifica-passaggio-number {
+          display: flex;
+          width: 27px;
+          height: 27px;
+          flex: 0 0 27px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(249, 115, 22, 0.4);
+          border-radius: 50%;
+          background: rgba(249, 115, 22, 0.12);
+          color: #fb923c;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .pianifica-passaggio-field {
+          flex: 1;
+          min-width: 0;
+          margin: 0;
+        }
+
+        .pianifica-remove-passaggio {
+          display: flex;
+          width: 38px;
+          height: 38px;
+          flex: 0 0 38px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #334155;
+          border-radius: 10px;
+          background: #111b2c;
+          color: #94a3b8;
+          cursor: pointer;
+          font-size: 17px;
+          transition:
+            color 150ms ease,
+            border-color 150ms ease,
+            background 150ms ease;
+        }
+
+        .pianifica-remove-passaggio:hover {
+          border-color: rgba(239, 68, 68, 0.65);
+          background: rgba(239, 68, 68, 0.1);
+          color: #fca5a5;
+        }
+
+        .pianifica-add-passaggio {
+          width: 100%;
+          box-sizing: border-box;
+          margin-bottom: 15px;
+          padding: 11px 14px;
+          border: 1px dashed #475569;
+          border-radius: 11px;
+          background: rgba(23, 32, 51, 0.7);
+          color: #fb923c;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 800;
+          transition:
+            border-color 150ms ease,
+            background 150ms ease;
+        }
+
+        .pianifica-add-passaggio:hover:not(:disabled) {
+          border-color: #f97316;
+          background: rgba(249, 115, 22, 0.08);
+        }
+
+        .pianifica-add-passaggio:disabled {
+          cursor: not-allowed;
+          opacity: 0.45;
+        }
+
+        .pianifica-passaggio-help {
+          margin: -6px 0 14px;
+          color: #64748b;
+          font-size: 11px;
         }
 
         .pianifica-grid-small {
@@ -301,7 +442,11 @@ export default function Pianifica() {
               #334155 0,
               transparent 34%
             ),
-            linear-gradient(135deg, #172033, #0b1220);
+            linear-gradient(
+              135deg,
+              #172033,
+              #0b1220
+            );
         }
 
         .pianifica-map-grid {
@@ -385,6 +530,52 @@ export default function Pianifica() {
           white-space: nowrap;
         }
 
+        .pianifica-route-list {
+          position: absolute;
+          top: 18px;
+          right: 18px;
+          width: min(235px, calc(100% - 36px));
+          max-height: 260px;
+          overflow-y: auto;
+          padding: 12px;
+          border: 1px solid #334155;
+          border-radius: 12px;
+          background: rgba(2, 6, 23, 0.88);
+          backdrop-filter: blur(8px);
+        }
+
+        .pianifica-route-title {
+          margin: 0 0 9px;
+          color: #cbd5e1;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+
+        .pianifica-route-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 6px 0;
+          color: #e2e8f0;
+          font-size: 12px;
+        }
+
+        .pianifica-route-dot {
+          display: flex;
+          width: 19px;
+          height: 19px;
+          flex: 0 0 19px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: #1e293b;
+          color: #fb923c;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
         .pianifica-days-heading {
           margin: 24px 0 12px;
           color: #f8fafc;
@@ -452,7 +643,13 @@ export default function Pianifica() {
           }
 
           .pianifica-map {
-            min-height: 390px;
+            min-height: 450px;
+          }
+        }
+
+        @media (max-width: 650px) {
+          .pianifica-route-list {
+            display: none;
           }
         }
 
@@ -478,8 +675,9 @@ export default function Pianifica() {
         </h2>
 
         <p className="pianifica-subtitle">
-          Definisci il percorso generale e suddividilo
-          fino a un massimo di cinque giornate.
+          Definisci partenza, passaggi intermedi e
+          arrivo, quindi suddividi il percorso fino a
+          un massimo di cinque giornate.
         </p>
       </header>
 
@@ -495,6 +693,7 @@ export default function Pianifica() {
           <label className="pianifica-label">
             Nome tour
           </label>
+
           <input
             className="pianifica-field"
             value={nome}
@@ -505,20 +704,9 @@ export default function Pianifica() {
           />
 
           <label className="pianifica-label">
-            Regioni attraversate
-          </label>
-          <input
-            className="pianifica-field"
-            value={regioni}
-            onChange={(evento) =>
-              setRegioni(evento.target.value)
-            }
-            placeholder="Piemonte, Liguria, Francia"
-          />
-
-          <label className="pianifica-label">
             Partenza
           </label>
+
           <input
             className="pianifica-field"
             value={partenza}
@@ -528,30 +716,82 @@ export default function Pianifica() {
             placeholder="Località di partenza"
           />
 
+          <div className="pianifica-passaggi">
+            {passaggi.map((passaggio, indice) => (
+              <div
+                className="pianifica-passaggio-row"
+                key={indice}
+              >
+                <span className="pianifica-passaggio-number">
+                  {indice + 1}
+                </span>
+
+                <input
+                  className="pianifica-field pianifica-passaggio-field"
+                  value={passaggio}
+                  onChange={(evento) =>
+                    aggiornaPassaggio(
+                      indice,
+                      evento.target.value
+                    )
+                  }
+                  placeholder={`Passaggio ${indice + 1}`}
+                  aria-label={`Passaggio ${indice + 1}`}
+                />
+
+                <button
+                  className="pianifica-remove-passaggio"
+                  type="button"
+                  onClick={() =>
+                    eliminaPassaggio(indice)
+                  }
+                  aria-label={`Elimina passaggio ${
+                    indice + 1
+                  }`}
+                  title="Elimina passaggio"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="pianifica-add-passaggio"
+            type="button"
+            onClick={aggiungiPassaggio}
+            disabled={
+              passaggi.length >= MAX_PASSAGGI
+            }
+          >
+            + Aggiungi passaggio
+          </button>
+
+          {passaggi.length > 0 && (
+            <p className="pianifica-passaggio-help">
+              I passaggi verranno percorsi nell’ordine
+              indicato. Puoi inserirne fino a{" "}
+              {MAX_PASSAGGI}.
+            </p>
+          )}
+
           <label className="pianifica-label">
             Arrivo
           </label>
+
           <input
             className="pianifica-field"
-            value={giroCircolare ? partenza : arrivo}
+            value={
+              giroCircolare ? partenza : arrivo
+            }
             onChange={(evento) =>
               setArrivo(evento.target.value)
             }
             disabled={giroCircolare}
-            placeholder="Località di arrivo"
-          />
-
-          <label className="pianifica-label">
-            Waypoint intermedi
-          </label>
-          <textarea
-            className="pianifica-field"
-            value={waypoint}
-            onChange={(evento) =>
-              setWaypoint(evento.target.value)
-            }
             placeholder={
-              "Inserisci un punto per riga\nEs. Colle del Sestriere"
+              giroCircolare
+                ? "Uguale alla partenza"
+                : "Località di arrivo"
             }
           />
 
@@ -560,6 +800,7 @@ export default function Pianifica() {
               <label className="pianifica-label">
                 Tipo percorso
               </label>
+
               <select
                 className="pianifica-field"
                 value={tipoPercorso}
@@ -588,6 +829,7 @@ export default function Pianifica() {
               <label className="pianifica-label">
                 Numero giorni
               </label>
+
               <select
                 className="pianifica-field"
                 value={numeroGiorni}
@@ -615,6 +857,7 @@ export default function Pianifica() {
           <label className="pianifica-label">
             Stato
           </label>
+
           <select
             className="pianifica-field"
             value={stato}
@@ -635,12 +878,18 @@ export default function Pianifica() {
               <input
                 type="checkbox"
                 checked={giroCircolare}
-                onChange={(evento) =>
-                  setGiroCircolare(
-                    evento.target.checked
-                  )
-                }
+                onChange={(evento) => {
+                  const attivo =
+                    evento.target.checked;
+
+                  setGiroCircolare(attivo);
+
+                  if (attivo) {
+                    setArrivo("");
+                  }
+                }}
               />
+
               <span className="pianifica-switch-slider" />
             </label>
           </div>
@@ -672,6 +921,7 @@ export default function Pianifica() {
                 strokeWidth="9"
                 strokeLinecap="round"
               />
+
               <path
                 d="M65 355 C145 250 235 330 315 220 S470 100 555 190 S670 310 745 85"
                 fill="none"
@@ -689,11 +939,45 @@ export default function Pianifica() {
               <strong>{tipoPercorso}</strong>
             </div>
 
+            {percorsoRiepilogato.length > 0 && (
+              <div className="pianifica-route-list">
+                <p className="pianifica-route-title">
+                  Ordine del percorso
+                </p>
+
+                {percorsoRiepilogato.map(
+                  (localita, indice) => (
+                    <div
+                      className="pianifica-route-item"
+                      key={`${localita}-${indice}`}
+                    >
+                      <span className="pianifica-route-dot">
+                        {indice + 1}
+                      </span>
+
+                      <span>{localita}</span>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
             <div className="pianifica-map-summary">
               <div className="pianifica-summary-item">
                 <span>Partenza</span>
                 <strong>
                   {partenza || "Da definire"}
+                </strong>
+              </div>
+
+              <div className="pianifica-summary-item">
+                <span>Passaggi</span>
+                <strong>
+                  {
+                    passaggi.filter((passaggio) =>
+                      passaggio.trim()
+                    ).length
+                  }
                 </strong>
               </div>
 
@@ -705,16 +989,6 @@ export default function Pianifica() {
                     : arrivo || "Da definire"}
                 </strong>
               </div>
-
-              <div className="pianifica-summary-item">
-                <span>Durata</span>
-                <strong>
-                  {numeroGiorni}{" "}
-                  {numeroGiorni === 1
-                    ? "giorno"
-                    : "giorni"}
-                </strong>
-              </div>
             </div>
           </div>
 
@@ -723,10 +997,9 @@ export default function Pianifica() {
           </h3>
 
           <p className="pianifica-day-help">
-            Hotel e ristoranti non vengono richiesti
-            durante la pianificazione. Potranno essere
-            registrati nel Diario durante o dopo il
-            tour.
+            Hotel, ristoranti e regioni attraversate
+            saranno registrati nel Diario durante o
+            dopo il tour.
           </p>
 
           <div style={{ marginTop: "14px" }}>
@@ -753,6 +1026,7 @@ export default function Pianifica() {
                     <strong>
                       Giorno {giornata.numero}
                     </strong>
+
                     <span>
                       {aperta
                         ? "Chiudi dettagli"
@@ -767,6 +1041,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Titolo tappa
                           </label>
+
                           <input
                             className="pianifica-field"
                             value={giornata.titolo}
@@ -784,6 +1059,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Partenza giornata
                           </label>
+
                           <input
                             className="pianifica-field"
                             value={
@@ -804,6 +1080,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Arrivo giornata
                           </label>
+
                           <input
                             className="pianifica-field"
                             value={giornata.arrivo}
@@ -822,6 +1099,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Chilometri previsti
                           </label>
+
                           <input
                             className="pianifica-field"
                             type="number"
@@ -842,6 +1120,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Ore previste
                           </label>
+
                           <input
                             className="pianifica-field"
                             type="number"
@@ -863,6 +1142,7 @@ export default function Pianifica() {
                           <label className="pianifica-label">
                             Dislivello positivo
                           </label>
+
                           <input
                             className="pianifica-field"
                             type="number"
@@ -885,6 +1165,7 @@ export default function Pianifica() {
                       <label className="pianifica-label">
                         Note di pianificazione
                       </label>
+
                       <textarea
                         className="pianifica-field pianifica-day-note"
                         value={giornata.note}
