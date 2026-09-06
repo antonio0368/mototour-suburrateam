@@ -11,12 +11,6 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-/*
- * Correzione delle icone marker in progetti React/Vite.
- * Leaflet, in alcuni bundler, non trova automaticamente
- * le immagini predefinite.
- */
-
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -92,11 +86,15 @@ export default function MappaPercorso({
         zoom={8}
         minZoom={4}
         maxZoom={19}
-        scrollWheelZoom
+        scrollWheelZoom={true}
         className="mappa-leaflet"
+        style={{
+          width: "100%",
+          height: "440px",
+        }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
@@ -114,7 +112,9 @@ export default function MappaPercorso({
             position={passaggio}
           >
             <Popup>
-              <strong>Passaggio {indice + 1}</strong>
+              <strong>
+                Passaggio {indice + 1}
+              </strong>
             </Popup>
           </Marker>
         ))}
@@ -142,16 +142,21 @@ export default function MappaPercorso({
           partenza={partenza}
           arrivo={arrivo}
           passaggi={passaggi}
-          coordinateTraccia={coordinateTraccia}
+          coordinateTraccia={
+            coordinateTraccia
+          }
         />
       </MapContainer>
 
-      {!partenza && !arrivo && !tracciaValida && (
-        <div className="mappa-messaggio">
-          Inserisci partenza, passaggi e arrivo per costruire il
-          percorso.
-        </div>
-      )}
+      {!partenza &&
+        !arrivo &&
+        !tracciaValida && (
+          <div className="mappa-messaggio">
+            Inserisci partenza,
+            passaggi e arrivo per
+            costruire il percorso.
+          </div>
+        )}
     </section>
   );
 }
