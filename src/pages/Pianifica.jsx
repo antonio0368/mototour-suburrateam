@@ -30,7 +30,7 @@ export default function Pianifica() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "380px 1fr",
+          gridTemplateColumns: "420px 1fr",
           gap: "20px",
           marginTop: "20px",
         }}
@@ -119,14 +119,48 @@ export default function Pianifica() {
                 style={{
                   background: "#172033",
                   border: "1px solid #334155",
-                  padding: "12px",
-                  borderRadius: "10px",
-                  marginBottom: "10px",
-                  textAlign: "center",
-                  fontWeight: "bold",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  marginBottom: "12px",
                 }}
               >
-                Giorno {index + 1}
+                <h4
+                  style={{
+                    marginTop: 0,
+                    color: "#f97316",
+                  }}
+                >
+                  Giorno {index + 1}
+                </h4>
+
+                <input
+                  placeholder="Partenza giornata"
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Arrivo giornata"
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Hotel"
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Ristorante"
+                  style={inputStyle}
+                />
+
+                <textarea
+                  placeholder="Note della giornata"
+                  style={{
+                    ...inputStyle,
+                    minHeight: "80px",
+                    marginBottom: 0,
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -151,7 +185,7 @@ export default function Pianifica() {
         <div
           style={{
             ...cardStyle,
-            minHeight: "700px",
+            minHeight: "900px",
           }}
         >
           <h3
@@ -170,6 +204,21 @@ export default function Pianifica() {
           >
             Qui comparirà OpenStreetMap
           </p>
+
+          <div
+            style={{
+              marginTop: "30px",
+              border: "2px dashed #334155",
+              borderRadius: "16px",
+              minHeight: "700px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#64748b",
+            }}
+          >
+            Anteprima percorso
+          </div>
         </div>
       </div>
     </div>
