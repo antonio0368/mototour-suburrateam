@@ -281,20 +281,11 @@ export default function Pianifica() {
             ? {
                 ...giornata,
                 valore,
-                riepilogo:
-                  campo === "note" ||
-                  campo === "titolo"
-                    ? giornata.riepilogo
-                    : null,
-                geometria:
-                  campo === "note" ||
-                  campo === "titolo"
-                    ? giornata.geometria
-                    : null,
               }
             : giornata
       )
     );
+  };
 
     if (
       campo !== "note" &&
