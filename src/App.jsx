@@ -1,6 +1,7 @@
 import React from "react";
 import Home from "./pages/Home";
 import Pianifica from "./pages/Pianifica";
+import Navigation from "./components/Navigation";
 export default function App() {
   const [page, setPage] = React.useState("home");
   return (
@@ -43,8 +44,13 @@ export default function App() {
       </header>
 
       <div>
-        <Home />
+        {page === "home" && <Home />}
+        {page === "pianifica" && <Pianifica />}
       </div>
+      <Navigation
+        page={page}
+       setPage={setPage}
+      />
     </div>
   );
 }
