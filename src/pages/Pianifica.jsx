@@ -1146,33 +1146,45 @@ export default function Pianifica() {
 
         <section className="pianifica-card">
           <div className="pianifica-map">
-            <div className="pianifica-map-grid" />
+  <MappaPercorso />
 
-            <svg viewBox="0 0 800 440">
-              <path
-                d="M65 355 C145 250 235 330 315 220 S470 100 555 190 S670 310 745 85"
-                fill="none"
-                stroke="#fb923c"
-                strokeWidth="9"
-                strokeLinecap="round"
-              />
+  <div className="pianifica-map-info">
+    <small>
+      Anteprima del percorso
+    </small>
 
-              <path
-                d="M65 355 C145 250 235 330 315 220 S470 100 555 190 S670 310 745 85"
-                fill="none"
-                stroke="#ffffff"
-                strokeOpacity="0.65"
-                strokeWidth="2"
-                strokeDasharray="9 12"
-              />
-            </svg>
+    <strong>{tipoPercorso}</strong>
+  </div>
 
-            <div className="pianifica-map-info">
-              <small>
-                Anteprima del percorso
-              </small>
-              <strong>{tipoPercorso}</strong>
-            </div>
+  <div className="pianifica-map-summary">
+    <div className="pianifica-summary-item">
+      <span>Chilometri</span>
+
+      <strong>
+        {totaliTour.km.toLocaleString("it-IT")} km
+      </strong>
+    </div>
+
+    <div className="pianifica-summary-item">
+      <span>Ore</span>
+
+      <strong>
+        {formattaOre(totaliTour.ore)}
+      </strong>
+    </div>
+
+    <div className="pianifica-summary-item">
+      <span>Dislivello</span>
+
+      <strong>
+        {totaliTour.dislivello.toLocaleString(
+          "it-IT"
+        )}{" "}
+        m D+
+      </strong>
+    </div>
+  </div>
+</div>
             
             <div className="pianifica-map-summary">
               <div className="pianifica-summary-item">
