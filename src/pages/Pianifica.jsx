@@ -58,6 +58,16 @@ export default function Pianifica() {
         }}
       />
 
+      <textarea
+        placeholder="Waypoint intermedi (uno per riga)"
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+          minHeight: "100px",
+        }}
+      />
+
       <select
         style={{
           width: "100%",
@@ -80,6 +90,17 @@ export default function Pianifica() {
           marginBottom: "12px",
         }}
       />
+
+      <select
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+        }}
+      >
+        <option>Bozza</option>
+        <option>Valido</option>
+      </select>
 
       <label
         style={{
