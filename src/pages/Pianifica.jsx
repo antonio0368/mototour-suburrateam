@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 export default function Pianifica() {
+  const [giorni, setGiorni] = useState(1);
   return (
     <div>
       <h2 style={{ color: "#f97316" }}>
@@ -84,6 +87,12 @@ export default function Pianifica() {
       <input
         type="number"
         placeholder="Numero giorni"
+        min="1"
+        max="14"
+        value={giorni}
+        onChange={(e) =>
+          setGiorni(Number(e.target.value) || 1)
+        }
         style={{
           width: "100%",
           padding: "12px",
@@ -125,7 +134,25 @@ export default function Pianifica() {
             Salva Tour
           </button>
         </div>
-
+        <div
+          style={{
+            marginBottom: "16px",
+          }}
+        >
+          {[...Array(giorni)].map((_, index) => (
+            <div
+              key={index}
+              style={{
+                background: "#172033",
+                padding: "10px",
+                borderRadius: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              Giorno {index + 1}
+            </div>
+          ))}
+        </div>
         <div
           style={{
             background: "#172033",
