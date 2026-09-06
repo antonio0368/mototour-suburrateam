@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MappaPercorso from "../components/MappaPercorso";
 
 const MAX_PASSAGGI = 10;
 
