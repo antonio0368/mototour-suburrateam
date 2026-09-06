@@ -2,6 +2,25 @@ import { useState } from "react";
 
 export default function Pianifica() {
   const [giorni, setGiorni] = useState(1);
+
+  const inputStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "14px",
+    marginBottom: "12px",
+    background: "#172033",
+    color: "white",
+    border: "1px solid #334155",
+    borderRadius: "10px",
+    outline: "none",
+  };
+
+  const cardStyle = {
+    background: "#0f172a",
+    padding: "20px",
+    borderRadius: "16px",
+  };
+
   return (
     <div>
       <h2 style={{ color: "#f97316" }}>
@@ -11,161 +30,146 @@ export default function Pianifica() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "350px 1fr",
+          gridTemplateColumns: "380px 1fr",
           gap: "20px",
           marginTop: "20px",
         }}
       >
-        <div
-          style={{
-            background: "#0f172a",
-            padding: "20px",
-            borderRadius: "16px",
-          }}
-        >
-          <h3>Nuovo tour</h3>
+        <div style={cardStyle}>
+          <h3
+            style={{
+              textAlign: "center",
+              marginBottom: "20px",
+            }}
+          >
+            Nuovo Tour
+          </h3>
 
-        <input
-          placeholder="Nome tour"
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "12px",
-          }}
-        />
+          <input
+            placeholder="Nome tour"
+            style={inputStyle}
+          />
 
-        <input
-          placeholder="Regioni attraversate"
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "12px",
-          }}
-        />
+          <input
+            placeholder="Regioni attraversate"
+            style={inputStyle}
+          />
 
-        <input
-        placeholder="Partenza"
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-        }}
-      />
+          <input
+            placeholder="Partenza"
+            style={inputStyle}
+          />
 
-      <input
-        placeholder="Arrivo"
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-        }}
-      />
+          <input
+            placeholder="Arrivo"
+            style={inputStyle}
+          />
 
-      <textarea
-        placeholder="Waypoint intermedi (uno per riga)"
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-          minHeight: "100px",
-        }}
-      />
+          <textarea
+            placeholder="Waypoint intermedi (uno per riga)"
+            style={{
+              ...inputStyle,
+              minHeight: "120px",
+            }}
+          />
 
-      <select
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-        }}
-      >
-        <option>Veloce</option>
-        <option>Panoramico</option>
-        <option>Curve</option>
-        <option>Extra curve</option>
-      </select>
+          <select style={inputStyle}>
+            <option>Veloce</option>
+            <option>Panoramico</option>
+            <option>Curve</option>
+            <option>Extra curve</option>
+          </select>
 
-      <input
-        type="number"
-        placeholder="Numero giorni"
-        min="1"
-        max="14"
-        value={giorni}
-        onChange={(e) =>
-          setGiorni(Number(e.target.value) || 1)
-        }
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-        }}
-      />
+          <input
+            type="number"
+            min="1"
+            max="14"
+            value={giorni}
+            onChange={(e) =>
+              setGiorni(Number(e.target.value) || 1)
+            }
+            style={inputStyle}
+          />
 
-      <select
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "12px",
-        }}
-      >
-        <option>Bozza</option>
-        <option>Valido</option>
-      </select>
+          <select style={inputStyle}>
+            <option>Bozza</option>
+            <option>Valido</option>
+          </select>
 
-      <label
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "16px",
-        }}
-      >
-        <input type="checkbox" />
-        Giro circolare
-      </label>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "20px",
+            }}
+          >
+            <input type="checkbox" />
+            Giro circolare
+          </label>
 
-        <div
-          style={{
-            marginBottom: "16px",
-          }}
-        >
-          {[...Array(giorni)].map((_, index) => (
-            <div
-              key={index}
-              style={{
-                background: "#172033",
-                padding: "10px",
-                borderRadius: "8px",
-                marginBottom: "8px",
-              }}
-            >
-              Giorno {index + 1}
-            </div>
-          ))}
-        </div>
+          <div
+            style={{
+              marginBottom: "20px",
+            }}
+          >
+            {[...Array(giorni)].map((_, index) => (
+              <div
+                key={index}
+                style={{
+                  background: "#172033",
+                  border: "1px solid #334155",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  marginBottom: "10px",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                }}
+              >
+                Giorno {index + 1}
+              </div>
+            ))}
+          </div>
 
           <button
             style={{
+              width: "100%",
               background: "#f97316",
               color: "white",
               border: "none",
-              padding: "12px 20px",
-              borderRadius: "8px",
+              padding: "14px",
+              borderRadius: "10px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              fontSize: "16px",
             }}
           >
             Salva Tour
           </button>
         </div>
-        
+
         <div
           style={{
-            background: "#172033",
-            borderRadius: "16px",
-            minHeight: "400px",
-            padding: "20px",
+            ...cardStyle,
+            minHeight: "700px",
           }}
         >
-          <h3>Mappa percorso</h3>
+          <h3
+            style={{
+              textAlign: "center",
+            }}
+          >
+            Mappa percorso
+          </h3>
 
-          <p>Qui comparirà OpenStreetMap</p>
+          <p
+            style={{
+              textAlign: "center",
+              color: "#94a3b8",
+            }}
+          >
+            Qui comparirà OpenStreetMap
+          </p>
         </div>
       </div>
     </div>
