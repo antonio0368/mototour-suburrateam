@@ -22,14 +22,75 @@ export default function Pianifica() {
         >
           <h3>Nuovo tour</h3>
 
-          <input
-            placeholder="Nome tour"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "12px",
-            }}
-          />
+        <input
+          placeholder="Nome tour"
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginBottom: "12px",
+          }}
+        />
+
+        <input
+          placeholder="Regioni attraversate"
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginBottom: "12px",
+          }}
+        />
+
+        <input
+        placeholder="Partenza"
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+        }}
+      />
+
+      <input
+        placeholder="Arrivo"
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+        }}
+      />
+
+      <select
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+        }}
+      >
+        <option>Veloce</option>
+        <option>Panoramico</option>
+        <option>Curve</option>
+        <option>Extra curve</option>
+      </select>
+
+      <input
+        type="number"
+        placeholder="Numero giorni"
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "12px",
+        }}
+      />
+
+      <label
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "16px",
+        }}
+      >
+        <input type="checkbox" />
+        Giro circolare
+      </label>
 
           <button
             style={{
