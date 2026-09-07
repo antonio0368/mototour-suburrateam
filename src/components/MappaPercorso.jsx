@@ -16,8 +16,10 @@ delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+
   iconUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+
   shadowUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -94,7 +96,7 @@ export default function MappaPercorso({
         }}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
+          attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
@@ -142,9 +144,7 @@ export default function MappaPercorso({
           partenza={partenza}
           arrivo={arrivo}
           passaggi={passaggi}
-          coordinateTraccia={
-            coordinateTraccia
-          }
+          coordinateTraccia={coordinateTraccia}
         />
       </MapContainer>
 
@@ -152,9 +152,8 @@ export default function MappaPercorso({
         !arrivo &&
         !tracciaValida && (
           <div className="mappa-messaggio">
-            Inserisci partenza,
-            passaggi e arrivo per
-            costruire il percorso.
+            Inserisci partenza, passaggi e arrivo
+            per costruire il percorso.
           </div>
         )}
     </section>
