@@ -17,10 +17,18 @@ export default function AutocompleteLocalita({
 
   const [aperto, setAperto] =
     useState(false);
+  
+  const [selezioneManuale, setSelezioneManuale] =
+  useState(false);
 
   const timeoutRef = useRef(null);
 
   useEffect(() => {
+    if (selezioneManuale) {
+      setSelezioneManuale(false);
+      return;
+    }
+    
     const testo = value?.trim();
 
     if (!testo || testo.length < 3) {
@@ -109,7 +117,7 @@ export default function AutocompleteLocalita({
       clearTimeout(
         timeoutRef.current
       );
-  }, [value]);
+    }, [value]);
 
   return (
     <div
@@ -175,6 +183,8 @@ export default function AutocompleteLocalita({
                     cursor: "pointer",
                   }}
                   onClick={() => {
+                    setSelezioneManuale(true);
+
                     setAperto(false);
 
                     setRisultati([]);
