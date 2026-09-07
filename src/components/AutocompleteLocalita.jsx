@@ -34,9 +34,9 @@ export default function AutocompleteLocalita({
         try {
           const risposta =
             await fetch(
-              `${ORS_BASE_URL}/geocode/autocomplete?api_key=${apiKey}&text=${encodeURIComponent(
+              `${ORS_BASE_URL}/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(
                 testo
-              )}&size=8`
+              )}&layers=street,address,venue&size=15`
             );
 
           if (!risposta.ok) {
