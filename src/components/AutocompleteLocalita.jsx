@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-const apiKey =
-  import.meta.env.VITE_ORS_API_KEY;
-
-const ORS_BASE_URL =
-  "https://api.openrouteservice.org";
+const PHOTON_URL =
+  "https://photon.komoot.io/api";
 
 export default function AutocompleteLocalita({
   value,
   onChange,
+  onSelect,
   placeholder = "",
   disabled = false,
 }) {
@@ -21,7 +19,8 @@ export default function AutocompleteLocalita({
   const [selezioneManuale, setSelezioneManuale] =
   useState(false);
 
-  const timeoutRef = useRef(null);
+  const timeoutRef =
+    useRef(null);
 
   useEffect(() => {
     if (selezioneManuale) {
@@ -29,23 +28,38 @@ export default function AutocompleteLocalita({
       return;
     }
     
-    const testo = value?.trim();
+    const testo =
+      String(value || "").trim();
 
-    if (!testo || testo.length < 3) {
+    if (
+      disabled ||
+      testo.length < 3
+    ) {
       setRisultati([]);
+      setAperto(false);
       return;
     }
 
-    clearTimeout(timeoutRef.current);
+    clearTimeout(
+      timeoutRef.current
+    );
 
     timeoutRef.current =
       setTimeout(async () => {
         try {
+          console.log("TESTO", testo);
+
+          console.log(
+            "URL",
+            `${PHOTON_URL}?q=${encodeURIComponent(
+              testo
+            )}&limit=10&lang=it`
+          );
           const risposta =
             await fetch(
-              `${ORS_BASE_URL}/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(
+              `${PHOTON_URL}?q=${encodeURIComponent(
                 testo
-              )}&layers=street,address,venue&size=15`
+              )}&limit=10`
             );
 
           if (!risposta.ok) {
@@ -55,69 +69,95 @@ export default function AutocompleteLocalita({
           const dati =
             await risposta.json();
 
+          console.log(
+            "RISPOSTA PHOTON",
+            dati
+          );
+
           const risultatiPuliti =
-            (dati.features || []).map(
-                (feature) => {
+            (dati.features || [])
+              .filter(
+                (feature) =>
+                  feature.geometry &&
+                  Array.isArray(
+                    feature.geometry
+                      .coordinates
+                  )
+              )
+              .map((feature) => {
+                const props =
+                  feature.properties ||
+                  {};
+
+                const lon =
+                  Number(
+                    feature.geometry
+                      .coordinates[0]
+                  );
+
+                const lat =
+                  Number(
+                    feature.geometry
+                      .coordinates[1]
+                  );
+
                 const nome =
-                    feature.properties?.name ||
-                    "";
-
-                const via =
-                    feature.properties?.street ||
-                    "";
-
-                const numero =
-                    feature.properties?.housenumber ||
-                    "";
+                  props.name ||
+                  props.street ||
+                  "";
 
                 const citta =
-                    feature.properties?.locality ||
-                    feature.properties?.county ||
-                    "";
+                  props.city ||
+                  props.county ||
+                  props.state ||
+                  "";
 
-                let label = "";
-
-                if (via) {
-                    label = via;
-
-                    if (numero) {
-                    label += ` ${numero}`;
-                    }
-
-                    if (citta) {
-                    label += `, ${citta}`;
-                    }
-                } else {
-                    label =
-                    nome ||
-                    feature.properties?.label ||
-                    "";
-                }
+                const label =
+                  citta
+                    ? `${nome}, ${citta}`
+                    : nome;
 
                 return {
-                    label,
-                    coordinate:
-                    feature.geometry
-                        ?.coordinates,
+                  label,
+
+                  coordinateORS: [
+                    lon,
+                    lat,
+                  ],
+
+                  coordinateLeaflet: [
+                    lat,
+                    lon,
+                  ],
                 };
-                }
-            );
+              })
+              .filter(
+                (r) =>
+                  r.label &&
+                  r.coordinateORS
+              );
 
           setRisultati(
             risultatiPuliti
           );
 
-          setAperto(true);
+          setAperto(
+            risultatiPuliti.length >
+              0
+          );
         } catch (errore) {
-          console.error(errore);
+          console.error(
+            "Autocomplete",
+            errore
+          );
         }
-      }, 300);
+      }, 350);
 
     return () =>
       clearTimeout(
         timeoutRef.current
       );
-    }, [value]);
+  }, [value, disabled]);
 
   return (
     <div
@@ -132,31 +172,41 @@ export default function AutocompleteLocalita({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(e) =>
-          onChange(e.target.value)
+          onChange(
+            e.target.value
+          )
         }
-        onFocus={() =>
-          risultati.length > 0 &&
-          setAperto(true)
-        }
+        onFocus={() => {
+          if (
+            risultati.length > 0
+          ) {
+            setAperto(true);
+          }
+        }}
       />
 
       {aperto &&
         risultati.length > 0 && (
           <div
             style={{
-              position: "absolute",
-              width: "100%",
+              position:
+                "absolute",
+              top: "100%",
               left: 0,
               right: 0,
-              top: "100%",
               zIndex: 9999,
-              marginTop: 4,
-              border:
-                "1px solid #334155",
-              borderRadius: 12,
-              overflow: "hidden",
               background:
                 "#172033",
+              border:
+                "1px solid #334155",
+              borderRadius:
+                "10px",
+              overflow:
+                "hidden",
+              maxHeight:
+                "280px",
+              overflowY:
+                "auto",
             }}
           >
             {risultati.map(
@@ -182,15 +232,26 @@ export default function AutocompleteLocalita({
                       "#f8fafc",
                     cursor: "pointer",
                   }}
-                  onClick={() => {
-                    setSelezioneManuale(true);
 
-                    setAperto(false);
-
-                    setRisultati([]);
-
+                  onMouseDown={() => {
                     onChange(
                       risultato.label
+                    );
+
+                    if (
+                      onSelect
+                    ) {
+                      onSelect(
+                        risultato
+                      );
+                    }
+
+                    setAperto(
+                      false
+                    );
+
+                    setRisultati(
+                      []
                     );
                   }}
                 >

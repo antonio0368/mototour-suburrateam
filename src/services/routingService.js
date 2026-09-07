@@ -1,12 +1,11 @@
 const apiKey = import.meta.env.VITE_ORS_API_KEY;
 
-const ORS_BASE_URL =
-  "https://api.openrouteservice.org";
+const ORS_BASE_URL = "/ors-api";
 
 function verificaApiKey() {
   if (!apiKey) {
     throw new Error(
-      "Chiave OpenRouteService mancante. Controlla il file .env.local e riavvia Vite."
+      "Chiave OpenRouteService mancante. Controlla .env.local e riavvia Vite."
     );
   }
 }
@@ -20,17 +19,13 @@ function coordinateValide(coordinate) {
   );
 }
 
-export async function geocodificaLocalita(
-  localita
-) {
+export async function geocodificaLocalita(localita) {
   verificaApiKey();
 
-  const query = localita?.trim();
+  const query = String(localita || "").trim();
 
   if (!query) {
-    throw new Error(
-      "Località non valida."
-    );
+    throw new Error("Località non valida.");
   }
 
   const parametri = new URLSearchParams({
@@ -44,89 +39,37 @@ export async function geocodificaLocalita(
   );
 
   if (!risposta.ok) {
-    let dettaglio = "";
-
-    try {
-      const datiErrore =
-        await risposta.json();
-
-      dettaglio =
-        datiErrore?.error?.message ||
-        datiErrore?.message ||
-        "";
-    } catch {
-      dettaglio = "";
-    }
-
-    throw new Error(
-      dettaglio ||
-        `Errore di geocodifica per "${query}" (${risposta.status}).`
-    );
+    throw new Error(`Errore di geocodifica per "${query}" (${risposta.status}).`);
   }
 
   const dati = await risposta.json();
-
-  const risultato =
-    dati?.features?.[0];
+  const risultato = dati?.features?.[0];
 
   if (!risultato) {
-    throw new Error(
-      `Località non trovata: "${query}". Prova a specificare anche provincia o nazione.`
-    );
+    throw new Error(`Località non trovata: "${query}".`);
   }
 
-  const coordinateGeoJson =
-    risultato.geometry?.coordinates;
+  const coordinate = risultato.geometry?.coordinates;
 
-  if (!coordinateValide(coordinateGeoJson)) {
-    throw new Error(
-      `Coordinate non valide per "${query}".`
-    );
+  if (!coordinateValide(coordinate)) {
+    throw new Error(`Coordinate non valide per "${query}".`);
   }
 
-  const [
-    longitudine,
-    latitudine,
-  ] = coordinateGeoJson;
+  const [longitudine, latitudine] = coordinate;
 
   return {
-    nome:
-      risultato.properties?.label ||
-      risultato.properties?.name ||
-      query,
-
-    coordinateLeaflet: [
-      Number(latitudine),
-      Number(longitudine),
-    ],
-
-    coordinateORS: [
-      Number(longitudine),
-      Number(latitudine),
-    ],
+    nome: risultato.properties?.label || query,
+    coordinateORS: [Number(longitudine), Number(latitudine)],
+    coordinateLeaflet: [Number(latitudine), Number(longitudine)],
   };
 }
 
-function calcolaDatiAltimetrici(
-  coordinateGeometria
-) {
-  if (
-    !Array.isArray(coordinateGeometria) ||
-    coordinateGeometria.length === 0
-  ) {
-    return {
-      dislivelloPositivo: 0,
-      dislivelloNegativo: 0,
-      quotaMinima: null,
-      quotaMassima: null,
-    };
-  }
-
-  const quote = coordinateGeometria
+function calcolaAltimetria(geometria) {
+  const quote = (geometria || [])
     .map((punto) => Number(punto?.[2]))
     .filter(Number.isFinite);
 
-  if (quote.length === 0) {
+  if (!quote.length) {
     return {
       dislivelloPositivo: 0,
       dislivelloNegativo: 0,
@@ -138,65 +81,26 @@ function calcolaDatiAltimetrici(
   let dislivelloPositivo = 0;
   let dislivelloNegativo = 0;
 
-  for (
-    let indice = 1;
-    indice < coordinateGeometria.length;
-    indice += 1
-  ) {
-    const quotaPrecedente = Number(
-      coordinateGeometria[indice - 1]?.[2]
-    );
+  for (let indice = 1; indice < geometria.length; indice += 1) {
+    const precedente = Number(geometria[indice - 1]?.[2]);
+    const attuale = Number(geometria[indice]?.[2]);
 
-    const quotaAttuale = Number(
-      coordinateGeometria[indice]?.[2]
-    );
-
-    if (
-      !Number.isFinite(quotaPrecedente) ||
-      !Number.isFinite(quotaAttuale)
-    ) {
+    if (!Number.isFinite(precedente) || !Number.isFinite(attuale)) {
       continue;
     }
 
-    const differenza =
-      quotaAttuale - quotaPrecedente;
+    const differenza = attuale - precedente;
 
-    if (differenza > 0) {
-      dislivelloPositivo += differenza;
-    } else if (differenza < 0) {
-      dislivelloNegativo +=
-        Math.abs(differenza);
-    }
+    if (differenza > 0) dislivelloPositivo += differenza;
+    if (differenza < 0) dislivelloNegativo += Math.abs(differenza);
   }
 
   return {
-    dislivelloPositivo:
-      Math.round(dislivelloPositivo),
-
-    dislivelloNegativo:
-      Math.round(dislivelloNegativo),
-
-    quotaMinima:
-      Math.round(Math.min(...quote)),
-
-    quotaMassima:
-      Math.round(Math.max(...quote)),
+    dislivelloPositivo: Math.round(dislivelloPositivo),
+    dislivelloNegativo: Math.round(dislivelloNegativo),
+    quotaMinima: Math.round(Math.min(...quote)),
+    quotaMassima: Math.round(Math.max(...quote)),
   };
-}
-
-function convertiGeometriaPerLeaflet(
-  coordinateGeometria
-) {
-  if (!Array.isArray(coordinateGeometria)) {
-    return [];
-  }
-
-  return coordinateGeometria
-    .filter(coordinateValide)
-    .map((punto) => [
-      Number(punto[1]),
-      Number(punto[0]),
-    ]);
 }
 
 export async function calcolaPercorso({
@@ -205,22 +109,12 @@ export async function calcolaPercorso({
 }) {
   verificaApiKey();
 
-  if (
-    !Array.isArray(coordinate) ||
-    coordinate.length < 2
-  ) {
-    throw new Error(
-      "Servono almeno partenza e arrivo per calcolare il percorso."
-    );
+  if (!Array.isArray(coordinate) || coordinate.length < 2) {
+    throw new Error("Servono almeno partenza e arrivo.");
   }
 
-  const tutteValide =
-    coordinate.every(coordinateValide);
-
-  if (!tutteValide) {
-    throw new Error(
-      "Una o più coordinate del percorso non sono valide."
-    );
+  if (!coordinate.every(coordinateValide)) {
+    throw new Error("Una o più coordinate del percorso non sono valide.");
   }
 
   const body = {
@@ -239,13 +133,10 @@ export async function calcolaPercorso({
     `${ORS_BASE_URL}/v2/directions/driving-car/geojson`,
     {
       method: "POST",
-
       headers: {
         Authorization: apiKey,
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
-
       body: JSON.stringify(body),
     }
   );
@@ -254,70 +145,56 @@ export async function calcolaPercorso({
     let dettaglio = "";
 
     try {
-      const datiErrore =
-        await risposta.json();
-
-      dettaglio =
-        datiErrore?.error?.message ||
-        datiErrore?.message ||
-        "";
+      const erroreApi = await risposta.json();
+      dettaglio = erroreApi?.error?.message || erroreApi?.message || "";
     } catch {
       dettaglio = "";
     }
 
     throw new Error(
-      dettaglio ||
-        `Errore nel calcolo del percorso (${risposta.status}).`
+      dettaglio || `Errore nel calcolo del percorso (${risposta.status}).`
     );
   }
 
   const dati = await risposta.json();
-
-  const feature =
-    dati?.features?.[0];
+  const feature = dati?.features?.[0];
 
   if (!feature) {
-    throw new Error(
-      "OpenRouteService non ha restituito alcun percorso."
-    );
+    throw new Error("OpenRouteService non ha restituito alcun percorso.");
   }
 
-  const geometria =
-    feature.geometry?.coordinates || [];
-
-  const summary =
-    feature.properties?.summary || {};
-
-  const altimetria =
-    calcolaDatiAltimetrici(geometria);
+  const geometriaGeoJson = feature.geometry?.coordinates || [];
+  const summary = feature.properties?.summary || {};
+  const altimetria = calcolaAltimetria(geometriaGeoJson);
 
   return {
-    distanzaMetri:
-      Number(summary.distance) || 0,
-
-    durataSecondi:
-      Number(summary.duration) || 0,
-
-    geometriaLeaflet:
-      convertiGeometriaPerLeaflet(
-        geometria
-      ),
-
-    geometriaGeoJson:
-      geometria,
-
-    dislivelloPositivo:
-      altimetria.dislivelloPositivo,
-
-    dislivelloNegativo:
-      altimetria.dislivelloNegativo,
-
-    quotaMinima:
-      altimetria.quotaMinima,
-
-    quotaMassima:
-      altimetria.quotaMassima,
+    geometriaGeoJson,
+    geometriaLeaflet: geometriaGeoJson
+      .filter(coordinateValide)
+      .map((punto) => [Number(punto[1]), Number(punto[0])]),
+    distanzaMetri: Number(summary.distance) || 0,
+    durataSecondi: Number(summary.duration) || 0,
+    ...altimetria,
   };
+}
+
+async function risolviPunto(localita, coordinateSelezionate) {
+  if (coordinateValide(coordinateSelezionate)) {
+    return {
+      nome: String(localita || "").trim(),
+      coordinateORS: [
+        Number(coordinateSelezionate[0]),
+        Number(coordinateSelezionate[1]),
+      ],
+      coordinateLeaflet: [
+        Number(coordinateSelezionate[1]),
+        Number(coordinateSelezionate[0]),
+      ],
+      daSelezione: true,
+    };
+  }
+
+  return geocodificaLocalita(localita);
 }
 
 export async function costruisciPercorso({
@@ -325,101 +202,57 @@ export async function costruisciPercorso({
   passaggi = [],
   arrivo,
   autostrade = false,
+  coordinateSelezionate = {},
 }) {
-  const partenzaPulita =
-    partenza?.trim();
-
-  const arrivoPulito =
-    arrivo?.trim();
-
+  const partenzaPulita = String(partenza || "").trim();
+  const arrivoPulito = String(arrivo || "").trim();
   const passaggiPuliti = passaggi
-    .map((passaggio) =>
-      passaggio?.trim()
-    )
+    .map((passaggio) => String(passaggio || "").trim())
     .filter(Boolean);
 
-  if (!partenzaPulita) {
-    throw new Error(
-      "Inserisci la partenza."
-    );
-  }
+  if (!partenzaPulita) throw new Error("Inserisci la partenza.");
+  if (!arrivoPulito) throw new Error("Inserisci l’arrivo.");
 
-  if (!arrivoPulito) {
-    throw new Error(
-      "Inserisci l’arrivo."
-    );
-  }
-
-  const localita = [
+  const partenzaRisolta = await risolviPunto(
     partenzaPulita,
-    ...passaggiPuliti,
-    arrivoPulito,
-  ];
+    coordinateSelezionate.partenza
+  );
 
-  const geocodificate = [];
+  const passaggiRisolti = [];
 
-  for (const voce of localita) {
-    const risultato =
-      await geocodificaLocalita(voce);
-
-    geocodificate.push(risultato);
+  for (let indice = 0; indice < passaggiPuliti.length; indice += 1) {
+    passaggiRisolti.push(
+      await risolviPunto(
+        passaggiPuliti[indice],
+        coordinateSelezionate.passaggi?.[indice]
+      )
+    );
   }
 
-  const coordinate =
-    geocodificate.map(
-      (elemento) =>
-        elemento.coordinateORS
-    );
+  const arrivoRisolto = await risolviPunto(
+    arrivoPulito,
+    coordinateSelezionate.arrivo
+  );
 
-  const percorso =
-    await calcolaPercorso({
-      coordinate,
-      evitaAutostrade: !autostrade,
-    });
+  const punti = [partenzaRisolta, ...passaggiRisolti, arrivoRisolto];
+
+  const percorso = await calcolaPercorso({
+    coordinate: punti.map((punto) => punto.coordinateORS),
+    evitaAutostrade: !autostrade,
+  });
 
   return {
-    pointStart:
-      geocodificate[0]
-        .coordinateLeaflet,
-
-    pointEnd:
-      geocodificate[
-        geocodificate.length - 1
-      ].coordinateLeaflet,
-
-    passaggi:
-      geocodificate
-        .slice(1, -1)
-        .map(
-          (punto) =>
-            punto.coordinateLeaflet
-        ),
-
-    localitaGeocodificate:
-      geocodificate,
-
-    geometria:
-      percorso.geometriaLeaflet,
-
-    geometriaGeoJson:
-      percorso.geometriaGeoJson,
-
-    distanzaMetri:
-      percorso.distanzaMetri,
-
-    durataSecondi:
-      percorso.durataSecondi,
-
-    dislivelloPositivo:
-      percorso.dislivelloPositivo,
-
-    dislivelloNegativo:
-      percorso.dislivelloNegativo,
-
-    quotaMinima:
-      percorso.quotaMinima,
-
-    quotaMassima:
-      percorso.quotaMassima,
+    pointStart: partenzaRisolta.coordinateLeaflet,
+    pointEnd: arrivoRisolto.coordinateLeaflet,
+    passaggi: passaggiRisolti.map((punto) => punto.coordinateLeaflet),
+    puntiRisolti: punti,
+    geometria: percorso.geometriaLeaflet,
+    geometriaGeoJson: percorso.geometriaGeoJson,
+    distanzaMetri: percorso.distanzaMetri,
+    durataSecondi: percorso.durataSecondi,
+    dislivelloPositivo: percorso.dislivelloPositivo,
+    dislivelloNegativo: percorso.dislivelloNegativo,
+    quotaMinima: percorso.quotaMinima,
+    quotaMassima: percorso.quotaMassima,
   };
 }
