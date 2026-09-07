@@ -15,6 +15,24 @@ export async function geocodificaLocalita(
   localita
 ) {
   verificaApiKey();
+console.log("PARAMETRO coordinate =", coordinate);
+export async function calcolaPercorso({
+  coordinate,
+  evitaAutostrade = false,
+}) {
+  verificaApiKey();
+
+  console.log(
+    "PARAMETRO coordinate =",
+    coordinate
+  );
+
+  const body = {
+    coordinates,
+    elevation: true,
+    instructions: false,
+  };
+
 
   const query = localita.trim();
 
