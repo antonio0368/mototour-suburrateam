@@ -114,6 +114,7 @@ export default function AutocompleteLocalita({
     <div
       style={{
         position: "relative",
+        width: "100%",
       }}
     >
       <input
@@ -134,6 +135,7 @@ export default function AutocompleteLocalita({
           <div
             style={{
               position: "absolute",
+              width: "100%",
               left: 0,
               right: 0,
               top: "100%",
