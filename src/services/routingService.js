@@ -6,35 +6,26 @@ const ORS_BASE_URL =
 function verificaApiKey() {
   if (!apiKey) {
     throw new Error(
-      "Chiave OpenRouteService mancante."
+      "Chiave OpenRouteService mancante. Controlla il file .env.local e riavvia Vite."
     );
   }
+}
+
+function coordinateValide(coordinate) {
+  return (
+    Array.isArray(coordinate) &&
+    coordinate.length >= 2 &&
+    Number.isFinite(Number(coordinate[0])) &&
+    Number.isFinite(Number(coordinate[1]))
+  );
 }
 
 export async function geocodificaLocalita(
   localita
 ) {
   verificaApiKey();
-console.log("PARAMETRO coordinate =", coordinate);
-export async function calcolaPercorso({
-  coordinate,
-  evitaAutostrade = false,
-}) {
-  verificaApiKey();
 
-  console.log(
-    "PARAMETRO coordinate =",
-    coordinate
-  );
-
-  const body = {
-    coordinates,
-    elevation: true,
-    instructions: false,
-  };
-
-
-  const query = localita.trim();
+  const query = localita?.trim();
 
   if (!query) {
     throw new Error(
@@ -42,15 +33,34 @@ export async function calcolaPercorso({
     );
   }
 
+  const parametri = new URLSearchParams({
+    api_key: apiKey,
+    text: query,
+    size: "1",
+  });
+
   const risposta = await fetch(
-    `${ORS_BASE_URL}/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(
-      query
-    )}&size=1`
+    `${ORS_BASE_URL}/geocode/search?${parametri.toString()}`
   );
 
   if (!risposta.ok) {
+    let dettaglio = "";
+
+    try {
+      const datiErrore =
+        await risposta.json();
+
+      dettaglio =
+        datiErrore?.error?.message ||
+        datiErrore?.message ||
+        "";
+    } catch {
+      dettaglio = "";
+    }
+
     throw new Error(
-      `Errore geocodifica: ${query}`
+      dettaglio ||
+        `Errore di geocodifica per "${query}" (${risposta.status}).`
     );
   }
 
@@ -61,30 +71,132 @@ export async function calcolaPercorso({
 
   if (!risultato) {
     throw new Error(
-      `Località non trovata: ${query}`
+      `Località non trovata: "${query}". Prova a specificare anche provincia o nazione.`
+    );
+  }
+
+  const coordinateGeoJson =
+    risultato.geometry?.coordinates;
+
+  if (!coordinateValide(coordinateGeoJson)) {
+    throw new Error(
+      `Coordinate non valide per "${query}".`
     );
   }
 
   const [
     longitudine,
     latitudine,
-  ] = risultato.geometry.coordinates;
+  ] = coordinateGeoJson;
 
   return {
     nome:
       risultato.properties?.label ||
+      risultato.properties?.name ||
       query,
 
     coordinateLeaflet: [
-      latitudine,
-      longitudine,
+      Number(latitudine),
+      Number(longitudine),
     ],
 
     coordinateORS: [
-      longitudine,
-      latitudine,
+      Number(longitudine),
+      Number(latitudine),
     ],
   };
+}
+
+function calcolaDatiAltimetrici(
+  coordinateGeometria
+) {
+  if (
+    !Array.isArray(coordinateGeometria) ||
+    coordinateGeometria.length === 0
+  ) {
+    return {
+      dislivelloPositivo: 0,
+      dislivelloNegativo: 0,
+      quotaMinima: null,
+      quotaMassima: null,
+    };
+  }
+
+  const quote = coordinateGeometria
+    .map((punto) => Number(punto?.[2]))
+    .filter(Number.isFinite);
+
+  if (quote.length === 0) {
+    return {
+      dislivelloPositivo: 0,
+      dislivelloNegativo: 0,
+      quotaMinima: null,
+      quotaMassima: null,
+    };
+  }
+
+  let dislivelloPositivo = 0;
+  let dislivelloNegativo = 0;
+
+  for (
+    let indice = 1;
+    indice < coordinateGeometria.length;
+    indice += 1
+  ) {
+    const quotaPrecedente = Number(
+      coordinateGeometria[indice - 1]?.[2]
+    );
+
+    const quotaAttuale = Number(
+      coordinateGeometria[indice]?.[2]
+    );
+
+    if (
+      !Number.isFinite(quotaPrecedente) ||
+      !Number.isFinite(quotaAttuale)
+    ) {
+      continue;
+    }
+
+    const differenza =
+      quotaAttuale - quotaPrecedente;
+
+    if (differenza > 0) {
+      dislivelloPositivo += differenza;
+    } else if (differenza < 0) {
+      dislivelloNegativo +=
+        Math.abs(differenza);
+    }
+  }
+
+  return {
+    dislivelloPositivo:
+      Math.round(dislivelloPositivo),
+
+    dislivelloNegativo:
+      Math.round(dislivelloNegativo),
+
+    quotaMinima:
+      Math.round(Math.min(...quote)),
+
+    quotaMassima:
+      Math.round(Math.max(...quote)),
+  };
+}
+
+function convertiGeometriaPerLeaflet(
+  coordinateGeometria
+) {
+  if (!Array.isArray(coordinateGeometria)) {
+    return [];
+  }
+
+  return coordinateGeometria
+    .filter(coordinateValide)
+    .map((punto) => [
+      Number(punto[1]),
+      Number(punto[0]),
+    ]);
 }
 
 export async function calcolaPercorso({
@@ -93,17 +205,33 @@ export async function calcolaPercorso({
 }) {
   verificaApiKey();
 
+  if (
+    !Array.isArray(coordinate) ||
+    coordinate.length < 2
+  ) {
+    throw new Error(
+      "Servono almeno partenza e arrivo per calcolare il percorso."
+    );
+  }
+
+  const tutteValide =
+    coordinate.every(coordinateValide);
+
+  if (!tutteValide) {
+    throw new Error(
+      "Una o più coordinate del percorso non sono valide."
+    );
+  }
+
   const body = {
-    coordinates,
+    coordinates: coordinate,
     elevation: true,
     instructions: false,
   };
 
   if (evitaAutostrade) {
     body.options = {
-      avoid_features: [
-        "highways",
-      ],
+      avoid_features: ["highways"],
     };
   }
 
@@ -123,63 +251,118 @@ export async function calcolaPercorso({
   );
 
   if (!risposta.ok) {
+    let dettaglio = "";
+
+    try {
+      const datiErrore =
+        await risposta.json();
+
+      dettaglio =
+        datiErrore?.error?.message ||
+        datiErrore?.message ||
+        "";
+    } catch {
+      dettaglio = "";
+    }
+
     throw new Error(
-      "Errore calcolo percorso."
+      dettaglio ||
+        `Errore nel calcolo del percorso (${risposta.status}).`
     );
   }
 
   const dati = await risposta.json();
 
   const feature =
-    dati.features?.[0];
+    dati?.features?.[0];
 
   if (!feature) {
     throw new Error(
-      "Percorso non disponibile."
+      "OpenRouteService non ha restituito alcun percorso."
     );
   }
 
   const geometria =
-    feature.geometry.coordinates;
+    feature.geometry?.coordinates || [];
 
   const summary =
-    feature.properties.summary;
+    feature.properties?.summary || {};
+
+  const altimetria =
+    calcolaDatiAltimetrici(geometria);
 
   return {
     distanzaMetri:
-      summary.distance,
+      Number(summary.distance) || 0,
 
     durataSecondi:
-      summary.duration,
+      Number(summary.duration) || 0,
 
     geometriaLeaflet:
-      geometria.map(
-        (punto) => [
-          punto[1],
-          punto[0],
-        ]
+      convertiGeometriaPerLeaflet(
+        geometria
       ),
+
+    geometriaGeoJson:
+      geometria,
+
+    dislivelloPositivo:
+      altimetria.dislivelloPositivo,
+
+    dislivelloNegativo:
+      altimetria.dislivelloNegativo,
+
+    quotaMinima:
+      altimetria.quotaMinima,
+
+    quotaMassima:
+      altimetria.quotaMassima,
   };
 }
 
 export async function costruisciPercorso({
   partenza,
-  passaggi,
+  passaggi = [],
   arrivo,
-  autostrade,
+  autostrade = false,
 }) {
+  const partenzaPulita =
+    partenza?.trim();
+
+  const arrivoPulito =
+    arrivo?.trim();
+
+  const passaggiPuliti = passaggi
+    .map((passaggio) =>
+      passaggio?.trim()
+    )
+    .filter(Boolean);
+
+  if (!partenzaPulita) {
+    throw new Error(
+      "Inserisci la partenza."
+    );
+  }
+
+  if (!arrivoPulito) {
+    throw new Error(
+      "Inserisci l’arrivo."
+    );
+  }
+
   const localita = [
-    partenza,
-    ...passaggi.filter(Boolean),
-    arrivo,
+    partenzaPulita,
+    ...passaggiPuliti,
+    arrivoPulito,
   ];
 
   const geocodificate = [];
 
   for (const voce of localita) {
-    geocodificate.push(
-      await geocodificaLocalita(voce)
-    );
+    const risultato =
+      await geocodificaLocalita(voce);
+
+    geocodificate.push(risultato);
   }
 
   const coordinate =
@@ -191,9 +374,7 @@ export async function costruisciPercorso({
   const percorso =
     await calcolaPercorso({
       coordinate,
-
-      evitaAutostrade:
-        !autostrade,
+      evitaAutostrade: !autostrade,
     });
 
   return {
@@ -214,13 +395,31 @@ export async function costruisciPercorso({
             punto.coordinateLeaflet
         ),
 
+    localitaGeocodificate:
+      geocodificate,
+
     geometria:
       percorso.geometriaLeaflet,
+
+    geometriaGeoJson:
+      percorso.geometriaGeoJson,
 
     distanzaMetri:
       percorso.distanzaMetri,
 
     durataSecondi:
       percorso.durataSecondi,
+
+    dislivelloPositivo:
+      percorso.dislivelloPositivo,
+
+    dislivelloNegativo:
+      percorso.dislivelloNegativo,
+
+    quotaMinima:
+      percorso.quotaMinima,
+
+    quotaMassima:
+      percorso.quotaMassima,
   };
 }
