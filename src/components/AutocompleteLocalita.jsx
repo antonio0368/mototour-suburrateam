@@ -10,6 +10,7 @@ export default function AutocompleteLocalita({
   value,
   onChange,
   placeholder = "",
+  disabled = false,
 }) {
   const [risultati, setRisultati] =
     useState([]);
@@ -120,6 +121,7 @@ export default function AutocompleteLocalita({
       <input
         className="pianifica-field"
         value={value}
+        disabled={disabled}
         placeholder={placeholder}
         onChange={(e) =>
           onChange(e.target.value)
@@ -173,16 +175,12 @@ export default function AutocompleteLocalita({
                     cursor: "pointer",
                   }}
                   onClick={() => {
+                    setAperto(false);
+
+                    setRisultati([]);
+
                     onChange(
                       risultato.label
-                    );
-
-                    setAperto(
-                      false
-                    );
-
-                    setRisultati(
-                      []
                     );
                   }}
                 >
