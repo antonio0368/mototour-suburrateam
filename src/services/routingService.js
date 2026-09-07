@@ -224,3 +224,4 @@ export async function costruisciPercorso({
       percorso.durataSecondi,
   };
 }
+}
