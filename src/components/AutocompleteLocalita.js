@@ -48,13 +48,50 @@ export default function AutocompleteLocalita({
 
           const risultatiPuliti =
             (dati.features || []).map(
-              (feature) => ({
-                label:
-                  feature.properties?.label,
-                coordinate:
-                  feature.geometry
-                    ?.coordinates,
-              })
+                (feature) => {
+                const nome =
+                    feature.properties?.name ||
+                    "";
+
+                const via =
+                    feature.properties?.street ||
+                    "";
+
+                const numero =
+                    feature.properties?.housenumber ||
+                    "";
+
+                const citta =
+                    feature.properties?.locality ||
+                    feature.properties?.county ||
+                    "";
+
+                let label = "";
+
+                if (via) {
+                    label = via;
+
+                    if (numero) {
+                    label += ` ${numero}`;
+                    }
+
+                    if (citta) {
+                    label += `, ${citta}`;
+                    }
+                } else {
+                    label =
+                    nome ||
+                    feature.properties?.label ||
+                    "";
+                }
+
+                return {
+                    label,
+                    coordinate:
+                    feature.geometry
+                        ?.coordinates,
+                };
+                }
             );
 
           setRisultati(
