@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import MappaPercorso from "../components/MappaPercorso";
 import RiepilogoPercorso from "../components/RiepilogoPercorso";
 import { costruisciPercorso } from "../services/routingService";
+import AutocompleteLocalita from "../components/AutocompleteLocalita";
 
 const MAX_PASSAGGI = 10;
 const creaGiornata = (numero) => ({
@@ -128,6 +129,7 @@ export default function Pianifica() {
           <label className="pianifica-label">Nome tour</label><input className="pianifica-field pianifica-standard-field" value={nome} onChange={(e)=>setNome(e.target.value)} placeholder="Es. Tour delle Dolomiti" />
           <label className="pianifica-label">Percorso</label>
           <div className="pianifica-route-fields">
+            <div className="pianifica-route-row"><span className="pianifica-route-letter">A</span><AutocompleteLocalita value={partenza} onChange={aggiornaPartenza} placeholder="Partenza"/><div /></div>
             <div className="pianifica-route-row"><span className="pianifica-route-letter">A</span><input className="pianifica-field" value={partenza} onChange={(e)=>aggiornaPartenza(e.target.value)} placeholder="Partenza"/><div/></div>
             {passaggi.map((p,i)=><div className="pianifica-route-row" key={i}><span className="pianifica-route-letter">{letteraPercorso(i+1)}</span><input className="pianifica-field" value={p} onChange={(e)=>aggiornaPassaggio(i,e.target.value)} placeholder={`Passaggio ${i+1}`}/><div className="pianifica-route-controls"><button type="button" className="pianifica-route-control" disabled={i===0} onClick={()=>spostaPassaggio(i,i-1)}>▲</button><button type="button" className="pianifica-route-control" disabled={i===passaggi.length-1} onClick={()=>spostaPassaggio(i,i+1)}>▼</button><button type="button" className="pianifica-route-control" onClick={()=>eliminaPassaggio(i)}>×</button></div></div>)}
             <button type="button" className="pianifica-add-passaggio" onClick={aggiungiPassaggio} disabled={passaggi.length>=MAX_PASSAGGI}>+ Aggiungi passaggio</button>
