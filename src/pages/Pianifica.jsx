@@ -3,6 +3,9 @@ import AutocompleteLocalita from "../components/AutocompleteLocalita";
 import MappaPercorso from "../components/MappaPercorso";
 import RiepilogoPercorso from "../components/RiepilogoPercorso";
 import { costruisciPercorso } from "../services/routingService";
+import {
+  salvaTour as salvaTourStorage,
+} from "../services/tourStorage";
 
 const MAX_PASSAGGI = 10;
 
@@ -307,10 +310,12 @@ export default function Pianifica() {
       riepilogo: riepilogoVisualizzato,
     };
 
-    console.log("Tour da salvare:", tour);
-    setMessaggio(`Tour "${nome.trim() || "senza nome"}" preparato correttamente.`);
+    salvaTourStorage(tour);
+    
+    setMessaggio(
+      `Tour "${nome.trim() || "senza nome"}" salvato correttamente.`
+    );
   };
-
   return (
     <main className="pianifica-page">
       <style>{`
